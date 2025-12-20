@@ -18,6 +18,8 @@ public class InputManager : MonoBehaviour
 
     [HideInInspector] public bool usingGamepad;
 
+    [HideInInspector] public bool showGunsPressed;
+
     private PlayerInput playerInput;
 
     private InputAction moveAction;
@@ -30,6 +32,8 @@ public class InputManager : MonoBehaviour
     private InputAction attackAction;
 
     private InputAction pauseAction;
+    private InputAction showGunsAction;
+
 
     private void Awake()
     {
@@ -46,6 +50,7 @@ public class InputManager : MonoBehaviour
         attackAction = actions.FindAction("Attack", true);
 
         pauseAction = actions.FindAction("Pausar", true);
+        showGunsAction = actions.FindAction("ShowGuns", true);
     }
 
     private void Update()
@@ -63,5 +68,6 @@ public class InputManager : MonoBehaviour
         attackPressed = attackAction.WasPressedThisFrame();
 
         pausePressed = pauseAction.WasPressedThisFrame();
+        showGunsPressed = showGunsAction.WasPressedThisFrame();
     }
 }

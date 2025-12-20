@@ -1,12 +1,13 @@
 using UnityEngine;
 using Unity.Cinemachine;
 
-[RequireComponent(typeof(SpriteRenderer))]
-public class DirectionalSprite4Way : MonoBehaviour
+public class DirectionalSprite4WayBillboard : MonoBehaviour
 {
     [Header("References")]
     [SerializeField] private CinemachineBrain brain;
-    [SerializeField] private Transform target; // Player o Camera
+    [SerializeField] private Transform target;          // si está vacío, usa la cámara
+    [SerializeField] private Transform visual;          // hijo que rota (billboard)
+    [SerializeField] private SpriteRenderer sr;         // renderer del hijo (visual)
 
     [Header("Sprites (4)")]
     [SerializeField] private Sprite front;
@@ -18,65 +19,62 @@ public class DirectionalSprite4Way : MonoBehaviour
     [SerializeField] private bool yOnly = true;
     [SerializeField] private float updateThresholdDegrees = 1.0f;
 
-    private SpriteRenderer sr;
     private float lastAngle;
+
+    void Reset()
+    {
+        sr = GetComponentInChildren<SpriteRenderer>();
+        if (sr != null) visual = sr.transform;
+    }
 
     void Awake()
     {
-        sr = GetComponent<SpriteRenderer>();
+        if (sr == null && visual != null)
+            sr = visual.GetComponent<SpriteRenderer>();
     }
 
     void LateUpdate()
     {
-        Transform t = ResolveTarget();
-        if (t == null) return;
+        Camera cam = brain != null ? brain.OutputCamera : Camera.main;
+        if (cam == null) return;
 
+        Transform t = target != null ? target : cam.transform;
+        if (t == null || visual == null || sr == null) return;
+
+        // --- 1) Calcula el ángulo usando el ROOT (este objeto), que NO debe estar billboard ---
         Vector3 toTarget = t.position - transform.position;
-        if (yOnly)
-            toTarget.y = 0f;
+        if (yOnly) toTarget.y = 0f;
 
         if (toTarget.sqrMagnitude < 0.0001f)
             return;
 
-        float angle = SignedAngleOnY(transform.forward, toTarget);
+        // Convertimos la dirección a espacio local del ROOT:
+        // z+ = "front" del NPC, x+ = "right" del NPC.
+        Vector3 localDir = transform.InverseTransformDirection(toTarget.normalized);
 
-        if (Mathf.Abs(Mathf.DeltaAngle(lastAngle, angle)) < updateThresholdDegrees)
-            return;
+        // Ángulo en el plano XZ relativo al frente del NPC
+        float angle = Mathf.Atan2(localDir.x, localDir.z) * Mathf.Rad2Deg; // [-180..180]
 
-        lastAngle = angle;
-        sr.sprite = PickSprite(angle);
+        if (Mathf.Abs(Mathf.DeltaAngle(lastAngle, angle)) >= updateThresholdDegrees)
+        {
+            lastAngle = angle;
+            sr.sprite = PickSprite(angle);
+        }
+
+        // --- 2) Billboard SOLO del visual (hijo) hacia la cámara ---
+        Vector3 toCam = cam.transform.position - visual.position;
+        if (yOnly) toCam.y = 0f;
+
+        if (toCam.sqrMagnitude > 0.0001f)
+            visual.rotation = Quaternion.LookRotation(toCam);
     }
 
-    private Transform ResolveTarget()
+    private Sprite PickSprite(float angle)
     {
-        if (target != null)
-            return target;
-
-        Camera cam = brain != null ? brain.OutputCamera : Camera.main;
-        return cam != null ? cam.transform : null;
-    }
-
-    private static float SignedAngleOnY(Vector3 from, Vector3 to)
-    {
-        from.y = 0f;
-        to.y = 0f;
-        from.Normalize();
-        to.Normalize();
-        return Vector3.SignedAngle(from, to, Vector3.up);
-    }
-
-    // Cuadrantes clásicos PS1
-    private Sprite PickSprite(float signedAngle)
-    {
-        if (signedAngle >= -45f && signedAngle < 45f)
-            return front;
-
-        if (signedAngle >= 45f && signedAngle < 135f)
-            return right;
-
-        if (signedAngle >= -135f && signedAngle < -45f)
-            return left;
-
+        // mismos cuadrantes que antes:
+        if (angle >= -45f && angle < 45f) return front;
+        if (angle >= 45f && angle < 135f) return right;
+        if (angle >= -135f && angle < -45f) return left;
         return back;
     }
 }

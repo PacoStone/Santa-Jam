@@ -21,6 +21,9 @@ public class PlayerMovement : MonoBehaviour
     [SerializeField] private float sprintDistanceDelta = 0.5f; // 2.5 -> 3.0
     [SerializeField] private float cameraDistanceSmooth = 8f;
 
+    [Header("Camera Distance (Aim)")]
+    [SerializeField] private float aimCameraDistance = 0f;
+
     [Header("Shoulder Y Bob (Walk/Sprint)")]
     [SerializeField] private float walkBobAmplitude = 0.05f;
     [SerializeField] private float walkBobFrequency = 7f;
@@ -116,6 +119,7 @@ public class PlayerMovement : MonoBehaviour
         Move();
         Gravity();
         CameraEffects();
+        Shoot();
         DebugTransitions();
     }
 
@@ -138,10 +142,40 @@ public class PlayerMovement : MonoBehaviour
     private void ApplyPauseUI(bool active)
     {
         if (pauseMenu != null)
+        {
             pauseMenu.SetActive(active);
+        }
 
         if (pauseBackground != null)
+        {
             pauseBackground.SetActive(active);
+        }
+    }
+
+    private bool IsMoving()
+    {
+        return 
+            input.move.sqrMagnitude > moveThreshold;
+    }
+
+    private bool CanAim()
+    {
+        if (!controller.isGrounded)
+            return false;
+
+        if (input.sprintHeld)
+            return false;
+
+        if (input.jumpPressed)
+            return false;
+
+        // Aquí ya hemos bloqueado sprint, así que con estar grounded vale.
+        return true;
+    }
+
+    private bool IsAiming()
+    {
+        return input.aimHeld && CanAim();
     }
 
     private void Move()
@@ -158,8 +192,10 @@ public class PlayerMovement : MonoBehaviour
 
         float speed = moveSpeed;
 
-        // Si estás apuntando, normalmente se evita sprint. (no te lo fuerzo, solo lo impido aquí)
-        bool canSprint = !input.aimHeld;
+        bool isAiming = IsAiming();
+
+        // Si estás apuntando, sprint bloqueado.
+        bool canSprint = !isAiming;
 
         if (input.sprintHeld && canSprint)
         {
@@ -244,12 +280,24 @@ public class PlayerMovement : MonoBehaviour
         if (thirdPersonFollow == null)
             return;
 
-        // Sprint distance (si estás apuntando, mantén base)
-        bool isMoving = input.move.sqrMagnitude > moveThreshold;
-        bool isAiming = input.aimHeld;
+        bool isMoving = IsMoving();
+        bool isAiming = IsAiming();
         bool isSprinting = isMoving && input.sprintHeld && !isAiming;
 
-        float targetDistance = isSprinting ? sprintCameraDistance : baseCameraDistance;
+        // Distancia:
+        // - Si apuntas: 0
+        // - Si sprint: distancia de sprint
+        // - Si normal: base
+        float targetDistance = baseCameraDistance;
+
+        if (isAiming)
+        {
+            targetDistance = aimCameraDistance;
+        }
+        else if (isSprinting)
+        {
+            targetDistance = sprintCameraDistance;
+        }
 
         thirdPersonFollow.CameraDistance = Mathf.Lerp(thirdPersonFollow.CameraDistance, targetDistance,
             Time.deltaTime * cameraDistanceSmooth);
@@ -271,10 +319,23 @@ public class PlayerMovement : MonoBehaviour
         thirdPersonFollow.ShoulderOffset = shoulder;
     }
 
+    private void Shoot()
+    {
+        // “Se pueda disparar mientras se apunta”
+        // Aquí lo dejo como trigger mínimo (log) para que lo conectes a tu sistema de armas.
+        if (!input.attackPressed)
+            return;
+
+        if (!IsAiming())
+            return;
+
+        Debug.Log("Shoot: ON (disparo mientras apuntas)");
+    }
+
     private void DebugTransitions()
     {
-        bool isMoving = input.move.sqrMagnitude > moveThreshold;
-        bool isAiming = input.aimHeld;
+        bool isMoving = IsMoving();
+        bool isAiming = IsAiming();
         bool isSprinting = isMoving && input.sprintHeld && !isAiming;
         bool isWalking = isMoving && !isSprinting && !isAiming;
 
@@ -289,9 +350,9 @@ public class PlayerMovement : MonoBehaviour
             Debug.Log("Sprint: OFF");
 
         if (isAiming && !wasAiming)
-            Debug.Log("Aim: ON (bob desactivado)");
+            Debug.Log("Aim: ON (CameraDistance -> 0)");
         if (!isAiming && wasAiming)
-            Debug.Log("Aim: OFF");
+            Debug.Log("Aim: OFF (CameraDistance -> normal)");
 
         wasWalking = isWalking;
         wasSprinting = isSprinting;
