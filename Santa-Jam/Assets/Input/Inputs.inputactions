@@ -16,6 +16,15 @@
                     "initialStateCheck": true
                 },
                 {
+                    "name": "Pausar",
+                    "type": "Button",
+                    "id": "ef0666d0-bdc7-4164-affd-a0c0f9a0d1e5",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
                     "name": "Look",
                     "type": "Value",
                     "id": "5c2c4b62-3193-4d57-bdd9-9140efd5781b",
@@ -55,6 +64,15 @@
                     "name": "Attack",
                     "type": "Button",
                     "id": "e15fbaa7-c0b1-4eb0-a21b-a0a91cc94fb1",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "Aim",
+                    "type": "Button",
+                    "id": "ed44c215-e9ba-43a5-a2a2-e016d51d0b51",
                     "expectedControlType": "",
                     "processors": "",
                     "interactions": "",
@@ -191,6 +209,50 @@
                     "processors": "",
                     "groups": "Joystick",
                     "action": "Move",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "977e4ba2-c3d5-42cd-8631-8ecff0c4ee82",
+                    "path": "<DualShockGamepad>/start",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Pausar",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "a68d3019-5e26-4edb-88f9-fcc30af2f0a8",
+                    "path": "<Keyboard>/pause",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Pausar",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "a15d13d7-2cbf-46da-9257-e44416316c26",
+                    "path": "<Keyboard>/p",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Pausar",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "df241886-3fcc-42d7-93a8-a07389999476",
+                    "path": "<Keyboard>/escape",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Pausar",
                     "isComposite": false,
                     "isPartOfComposite": false
                 },
@@ -380,6 +442,28 @@
                     "action": "Attack",
                     "isComposite": false,
                     "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "9980b3f5-a82b-42de-bf25-d1c718cffa1f",
+                    "path": "<Gamepad>/leftTrigger",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Aim",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "e167d4ca-60ad-4399-a272-25a0f14428a9",
+                    "path": "<Mouse>/rightButton",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Aim",
+                    "isComposite": false,
+                    "isPartOfComposite": false
                 }
             ]
         },
@@ -388,7 +472,7 @@
             "id": "6d532fed-0eb8-4e16-ad2a-ee2c3cfa3b60",
             "actions": [
                 {
-                    "name": "Pausar",
+                    "name": "Go Back",
                     "type": "Button",
                     "id": "4f7c0c34-34f8-4b71-ad28-0f45132c4fd2",
                     "expectedControlType": "",
@@ -441,7 +525,7 @@
                     "interactions": "",
                     "processors": "",
                     "groups": "",
-                    "action": "Pausar",
+                    "action": "Go Back",
                     "isComposite": false,
                     "isPartOfComposite": false
                 },
@@ -452,7 +536,7 @@
                     "interactions": "",
                     "processors": "",
                     "groups": "",
-                    "action": "Pausar",
+                    "action": "Go Back",
                     "isComposite": false,
                     "isPartOfComposite": false
                 },
@@ -463,7 +547,7 @@
                     "interactions": "",
                     "processors": "",
                     "groups": "",
-                    "action": "Pausar",
+                    "action": "Go Back",
                     "isComposite": false,
                     "isPartOfComposite": false
                 },

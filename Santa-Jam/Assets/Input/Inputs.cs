@@ -102,6 +102,15 @@ public partial class @Inputs: IInputActionCollection2, IDisposable
                     ""initialStateCheck"": true
                 },
                 {
+                    ""name"": ""Pausar"",
+                    ""type"": ""Button"",
+                    ""id"": ""ef0666d0-bdc7-4164-affd-a0c0f9a0d1e5"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                },
+                {
                     ""name"": ""Look"",
                     ""type"": ""Value"",
                     ""id"": ""5c2c4b62-3193-4d57-bdd9-9140efd5781b"",
@@ -141,6 +150,15 @@ public partial class @Inputs: IInputActionCollection2, IDisposable
                     ""name"": ""Attack"",
                     ""type"": ""Button"",
                     ""id"": ""e15fbaa7-c0b1-4eb0-a21b-a0a91cc94fb1"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""Aim"",
+                    ""type"": ""Button"",
+                    ""id"": ""ed44c215-e9ba-43a5-a2a2-e016d51d0b51"",
                     ""expectedControlType"": """",
                     ""processors"": """",
                     ""interactions"": """",
@@ -277,6 +295,50 @@ public partial class @Inputs: IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""groups"": ""Joystick"",
                     ""action"": ""Move"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""977e4ba2-c3d5-42cd-8631-8ecff0c4ee82"",
+                    ""path"": ""<DualShockGamepad>/start"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Pausar"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""a68d3019-5e26-4edb-88f9-fcc30af2f0a8"",
+                    ""path"": ""<Keyboard>/pause"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Pausar"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""a15d13d7-2cbf-46da-9257-e44416316c26"",
+                    ""path"": ""<Keyboard>/p"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Pausar"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""df241886-3fcc-42d7-93a8-a07389999476"",
+                    ""path"": ""<Keyboard>/escape"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Pausar"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 },
@@ -466,6 +528,28 @@ public partial class @Inputs: IInputActionCollection2, IDisposable
                     ""action"": ""Attack"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""9980b3f5-a82b-42de-bf25-d1c718cffa1f"",
+                    ""path"": ""<Gamepad>/leftTrigger"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Aim"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""e167d4ca-60ad-4399-a272-25a0f14428a9"",
+                    ""path"": ""<Mouse>/rightButton"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Aim"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
                 }
             ]
         },
@@ -474,7 +558,7 @@ public partial class @Inputs: IInputActionCollection2, IDisposable
             ""id"": ""6d532fed-0eb8-4e16-ad2a-ee2c3cfa3b60"",
             ""actions"": [
                 {
-                    ""name"": ""Pausar"",
+                    ""name"": ""Go Back"",
                     ""type"": ""Button"",
                     ""id"": ""4f7c0c34-34f8-4b71-ad28-0f45132c4fd2"",
                     ""expectedControlType"": """",
@@ -527,7 +611,7 @@ public partial class @Inputs: IInputActionCollection2, IDisposable
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": """",
-                    ""action"": ""Pausar"",
+                    ""action"": ""Go Back"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 },
@@ -538,7 +622,7 @@ public partial class @Inputs: IInputActionCollection2, IDisposable
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": """",
-                    ""action"": ""Pausar"",
+                    ""action"": ""Go Back"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 },
@@ -549,7 +633,7 @@ public partial class @Inputs: IInputActionCollection2, IDisposable
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": """",
-                    ""action"": ""Pausar"",
+                    ""action"": ""Go Back"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 },
@@ -891,14 +975,16 @@ public partial class @Inputs: IInputActionCollection2, IDisposable
         // Jugador
         m_Jugador = asset.FindActionMap("Jugador", throwIfNotFound: true);
         m_Jugador_Move = m_Jugador.FindAction("Move", throwIfNotFound: true);
+        m_Jugador_Pausar = m_Jugador.FindAction("Pausar", throwIfNotFound: true);
         m_Jugador_Look = m_Jugador.FindAction("Look", throwIfNotFound: true);
         m_Jugador_Crouch = m_Jugador.FindAction("Crouch", throwIfNotFound: true);
         m_Jugador_Sprint = m_Jugador.FindAction("Sprint", throwIfNotFound: true);
         m_Jugador_Jump = m_Jugador.FindAction("Jump", throwIfNotFound: true);
         m_Jugador_Attack = m_Jugador.FindAction("Attack", throwIfNotFound: true);
+        m_Jugador_Aim = m_Jugador.FindAction("Aim", throwIfNotFound: true);
         // UI
         m_UI = asset.FindActionMap("UI", throwIfNotFound: true);
-        m_UI_Pausar = m_UI.FindAction("Pausar", throwIfNotFound: true);
+        m_UI_GoBack = m_UI.FindAction("Go Back", throwIfNotFound: true);
         m_UI_ScrollWheel = m_UI.FindAction("ScrollWheel", throwIfNotFound: true);
         m_UI_Cancel = m_UI.FindAction("Cancel", throwIfNotFound: true);
         m_UI_Navigate = m_UI.FindAction("Navigate", throwIfNotFound: true);
@@ -985,11 +1071,13 @@ public partial class @Inputs: IInputActionCollection2, IDisposable
     private readonly InputActionMap m_Jugador;
     private List<IJugadorActions> m_JugadorActionsCallbackInterfaces = new List<IJugadorActions>();
     private readonly InputAction m_Jugador_Move;
+    private readonly InputAction m_Jugador_Pausar;
     private readonly InputAction m_Jugador_Look;
     private readonly InputAction m_Jugador_Crouch;
     private readonly InputAction m_Jugador_Sprint;
     private readonly InputAction m_Jugador_Jump;
     private readonly InputAction m_Jugador_Attack;
+    private readonly InputAction m_Jugador_Aim;
     /// <summary>
     /// Provides access to input actions defined in input action map "Jugador".
     /// </summary>
@@ -1005,6 +1093,10 @@ public partial class @Inputs: IInputActionCollection2, IDisposable
         /// Provides access to the underlying input action "Jugador/Move".
         /// </summary>
         public InputAction @Move => m_Wrapper.m_Jugador_Move;
+        /// <summary>
+        /// Provides access to the underlying input action "Jugador/Pausar".
+        /// </summary>
+        public InputAction @Pausar => m_Wrapper.m_Jugador_Pausar;
         /// <summary>
         /// Provides access to the underlying input action "Jugador/Look".
         /// </summary>
@@ -1025,6 +1117,10 @@ public partial class @Inputs: IInputActionCollection2, IDisposable
         /// Provides access to the underlying input action "Jugador/Attack".
         /// </summary>
         public InputAction @Attack => m_Wrapper.m_Jugador_Attack;
+        /// <summary>
+        /// Provides access to the underlying input action "Jugador/Aim".
+        /// </summary>
+        public InputAction @Aim => m_Wrapper.m_Jugador_Aim;
         /// <summary>
         /// Provides access to the underlying input action map instance.
         /// </summary>
@@ -1054,6 +1150,9 @@ public partial class @Inputs: IInputActionCollection2, IDisposable
             @Move.started += instance.OnMove;
             @Move.performed += instance.OnMove;
             @Move.canceled += instance.OnMove;
+            @Pausar.started += instance.OnPausar;
+            @Pausar.performed += instance.OnPausar;
+            @Pausar.canceled += instance.OnPausar;
             @Look.started += instance.OnLook;
             @Look.performed += instance.OnLook;
             @Look.canceled += instance.OnLook;
@@ -1069,6 +1168,9 @@ public partial class @Inputs: IInputActionCollection2, IDisposable
             @Attack.started += instance.OnAttack;
             @Attack.performed += instance.OnAttack;
             @Attack.canceled += instance.OnAttack;
+            @Aim.started += instance.OnAim;
+            @Aim.performed += instance.OnAim;
+            @Aim.canceled += instance.OnAim;
         }
 
         /// <summary>
@@ -1083,6 +1185,9 @@ public partial class @Inputs: IInputActionCollection2, IDisposable
             @Move.started -= instance.OnMove;
             @Move.performed -= instance.OnMove;
             @Move.canceled -= instance.OnMove;
+            @Pausar.started -= instance.OnPausar;
+            @Pausar.performed -= instance.OnPausar;
+            @Pausar.canceled -= instance.OnPausar;
             @Look.started -= instance.OnLook;
             @Look.performed -= instance.OnLook;
             @Look.canceled -= instance.OnLook;
@@ -1098,6 +1203,9 @@ public partial class @Inputs: IInputActionCollection2, IDisposable
             @Attack.started -= instance.OnAttack;
             @Attack.performed -= instance.OnAttack;
             @Attack.canceled -= instance.OnAttack;
+            @Aim.started -= instance.OnAim;
+            @Aim.performed -= instance.OnAim;
+            @Aim.canceled -= instance.OnAim;
         }
 
         /// <summary>
@@ -1135,7 +1243,7 @@ public partial class @Inputs: IInputActionCollection2, IDisposable
     // UI
     private readonly InputActionMap m_UI;
     private List<IUIActions> m_UIActionsCallbackInterfaces = new List<IUIActions>();
-    private readonly InputAction m_UI_Pausar;
+    private readonly InputAction m_UI_GoBack;
     private readonly InputAction m_UI_ScrollWheel;
     private readonly InputAction m_UI_Cancel;
     private readonly InputAction m_UI_Navigate;
@@ -1152,9 +1260,9 @@ public partial class @Inputs: IInputActionCollection2, IDisposable
         /// </summary>
         public UIActions(@Inputs wrapper) { m_Wrapper = wrapper; }
         /// <summary>
-        /// Provides access to the underlying input action "UI/Pausar".
+        /// Provides access to the underlying input action "UI/GoBack".
         /// </summary>
-        public InputAction @Pausar => m_Wrapper.m_UI_Pausar;
+        public InputAction @GoBack => m_Wrapper.m_UI_GoBack;
         /// <summary>
         /// Provides access to the underlying input action "UI/ScrollWheel".
         /// </summary>
@@ -1197,9 +1305,9 @@ public partial class @Inputs: IInputActionCollection2, IDisposable
         {
             if (instance == null || m_Wrapper.m_UIActionsCallbackInterfaces.Contains(instance)) return;
             m_Wrapper.m_UIActionsCallbackInterfaces.Add(instance);
-            @Pausar.started += instance.OnPausar;
-            @Pausar.performed += instance.OnPausar;
-            @Pausar.canceled += instance.OnPausar;
+            @GoBack.started += instance.OnGoBack;
+            @GoBack.performed += instance.OnGoBack;
+            @GoBack.canceled += instance.OnGoBack;
             @ScrollWheel.started += instance.OnScrollWheel;
             @ScrollWheel.performed += instance.OnScrollWheel;
             @ScrollWheel.canceled += instance.OnScrollWheel;
@@ -1223,9 +1331,9 @@ public partial class @Inputs: IInputActionCollection2, IDisposable
         /// <seealso cref="UIActions" />
         private void UnregisterCallbacks(IUIActions instance)
         {
-            @Pausar.started -= instance.OnPausar;
-            @Pausar.performed -= instance.OnPausar;
-            @Pausar.canceled -= instance.OnPausar;
+            @GoBack.started -= instance.OnGoBack;
+            @GoBack.performed -= instance.OnGoBack;
+            @GoBack.canceled -= instance.OnGoBack;
             @ScrollWheel.started -= instance.OnScrollWheel;
             @ScrollWheel.performed -= instance.OnScrollWheel;
             @ScrollWheel.canceled -= instance.OnScrollWheel;
@@ -1286,6 +1394,13 @@ public partial class @Inputs: IInputActionCollection2, IDisposable
         /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
         void OnMove(InputAction.CallbackContext context);
         /// <summary>
+        /// Method invoked when associated input action "Pausar" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnPausar(InputAction.CallbackContext context);
+        /// <summary>
         /// Method invoked when associated input action "Look" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
         /// </summary>
         /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
@@ -1320,6 +1435,13 @@ public partial class @Inputs: IInputActionCollection2, IDisposable
         /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
         /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
         void OnAttack(InputAction.CallbackContext context);
+        /// <summary>
+        /// Method invoked when associated input action "Aim" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnAim(InputAction.CallbackContext context);
     }
     /// <summary>
     /// Interface to implement callback methods for all input action callbacks associated with input actions defined by "UI" which allows adding and removing callbacks.
@@ -1329,12 +1451,12 @@ public partial class @Inputs: IInputActionCollection2, IDisposable
     public interface IUIActions
     {
         /// <summary>
-        /// Method invoked when associated input action "Pausar" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// Method invoked when associated input action "Go Back" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
         /// </summary>
         /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
         /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
         /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
-        void OnPausar(InputAction.CallbackContext context);
+        void OnGoBack(InputAction.CallbackContext context);
         /// <summary>
         /// Method invoked when associated input action "ScrollWheel" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
         /// </summary>

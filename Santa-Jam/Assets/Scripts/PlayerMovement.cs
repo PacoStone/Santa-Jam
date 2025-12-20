@@ -1,3 +1,4 @@
+using Unity.Cinemachine;
 using UnityEngine;
 
 [RequireComponent(typeof(CharacterController))]
@@ -6,6 +7,29 @@ public class PlayerMovement : MonoBehaviour
 {
     [Header("References")]
     [SerializeField] private Transform cameraTransform;
+
+    [Header("Cinemachine")]
+    [SerializeField] private CinemachineCamera vcam;
+
+    [Header("Pause UI")]
+    [SerializeField] private GameObject pauseMenu;       // "Menú de pausa"
+    [SerializeField] private GameObject pauseBackground; // "fondo de pausa"
+
+    [Header("Camera Distance (Sprint)")]
+    [SerializeField] private bool syncBaseFromCinemachine = true;
+    [SerializeField] private float baseCameraDistance = 2.5f;
+    [SerializeField] private float sprintDistanceDelta = 0.5f; // 2.5 -> 3.0
+    [SerializeField] private float cameraDistanceSmooth = 8f;
+
+    [Header("Shoulder Y Bob (Walk/Sprint)")]
+    [SerializeField] private float walkBobAmplitude = 0.05f;
+    [SerializeField] private float walkBobFrequency = 7f;
+
+    [SerializeField] private float sprintBobAmplitude = 0.10f;
+    [SerializeField] private float sprintBobFrequency = 11f;
+
+    [SerializeField] private float shoulderSmooth = 12f;
+    [SerializeField] private float moveThreshold = 0.01f;
 
     [Header("Movement")]
     [SerializeField] private float moveSpeed = 6f;
@@ -21,7 +45,7 @@ public class PlayerMovement : MonoBehaviour
 
     [Header("Look")]
     [SerializeField] private float mouseSensitivity = 2.0f;
-    [SerializeField] private float stickSensitivity = 180f; // grados/seg aprox
+    [SerializeField] private float stickSensitivity = 180f;
     [SerializeField] private float stickLookSmoothing = 0.04f;
     [SerializeField] private float minPitch = -80f;
     [SerializeField] private float maxPitch = 80f;
@@ -32,13 +56,24 @@ public class PlayerMovement : MonoBehaviour
     private float verticalVelocity;
     private float cameraPitch;
 
-    // Timers (coyote + buffer)
     private float coyoteTimer;
     private float jumpBufferTimer;
 
-    // Stick smoothing
     private Vector2 smoothedStickLook;
     private Vector2 stickLookVelocity;
+
+    private CinemachineThirdPersonFollow thirdPersonFollow;
+
+    private float sprintCameraDistance;
+
+    private float baseShoulderY;
+
+    private bool isPaused;
+
+    // Debug (evitar spam)
+    private bool wasWalking;
+    private bool wasSprinting;
+    private bool wasAiming;
 
     private void Awake()
     {
@@ -47,15 +82,66 @@ public class PlayerMovement : MonoBehaviour
 
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
+
+        if (vcam != null)
+        {
+            thirdPersonFollow = vcam.GetComponent<CinemachineThirdPersonFollow>();
+
+            if (thirdPersonFollow != null && syncBaseFromCinemachine)
+            {
+                baseCameraDistance = thirdPersonFollow.CameraDistance;
+                baseShoulderY = thirdPersonFollow.ShoulderOffset.y;
+            }
+            else if (thirdPersonFollow != null)
+            {
+                baseShoulderY = thirdPersonFollow.ShoulderOffset.y;
+            }
+        }
+
+        sprintCameraDistance = baseCameraDistance + sprintDistanceDelta;
+
+        ApplyPauseUI(false);
     }
 
     private void Update()
     {
+        Pause();
+
+        if (isPaused)
+            return;
+
         Look();
         GroundCheck();
         Jump();
         Move();
         Gravity();
+        CameraEffects();
+        DebugTransitions();
+    }
+
+    private void Pause()
+    {
+        if (!input.pausePressed)
+            return;
+
+        isPaused = !isPaused;
+
+        Time.timeScale = isPaused ? 0f : 1f;
+
+        Cursor.lockState = isPaused ? CursorLockMode.None : CursorLockMode.Locked;
+
+        ApplyPauseUI(isPaused);
+
+        Debug.Log(isPaused ? "PAUSA: Activada" : "PAUSA: Desactivada");
+    }
+
+    private void ApplyPauseUI(bool active)
+    {
+        if (pauseMenu != null)
+            pauseMenu.SetActive(active);
+
+        if (pauseBackground != null)
+            pauseBackground.SetActive(active);
     }
 
     private void Move()
@@ -65,13 +151,20 @@ public class PlayerMovement : MonoBehaviour
 
         Vector3 moveDirection = forward * input.move.y + right * input.move.x;
 
-        // Evita boost en diagonal
         if (moveDirection.sqrMagnitude > 1f)
+        {
             moveDirection.Normalize();
+        }
 
         float speed = moveSpeed;
-        if (input.sprintHeld)
+
+        // Si estás apuntando, normalmente se evita sprint. (no te lo fuerzo, solo lo impido aquí)
+        bool canSprint = !input.aimHeld;
+
+        if (input.sprintHeld && canSprint)
+        {
             speed *= sprintMultiplier;
+        }
 
         controller.Move(moveDirection * speed * Time.deltaTime);
     }
@@ -88,19 +181,15 @@ public class PlayerMovement : MonoBehaviour
 
         if (input.usingGamepad)
         {
-            // Stick: suavizado + deltaTime
             smoothedStickLook = Vector2.SmoothDamp(smoothedStickLook, lookInput, ref stickLookVelocity, stickLookSmoothing);
 
             Vector2 stick = smoothedStickLook * stickSensitivity * Time.deltaTime;
-
             yawDelta = stick.x;
             pitchDelta = stick.y;
         }
         else
         {
-            // Mouse: delta por frame, normalmente NO se multiplica por deltaTime
             Vector2 mouse = lookInput * mouseSensitivity;
-
             yawDelta = mouse.x;
             pitchDelta = mouse.y;
         }
@@ -114,21 +203,20 @@ public class PlayerMovement : MonoBehaviour
 
     private void Jump()
     {
-        // Jump Buffer: si pulsas antes de tocar suelo
         if (input.jumpPressed)
+        {
             jumpBufferTimer = jumpBufferTime;
+        }
         else
+        {
             jumpBufferTimer -= Time.deltaTime;
+        }
 
-        // Coyote: se “recarga” en GroundCheck
         coyoteTimer -= Time.deltaTime;
 
-        // Ejecuta salto si hay buffer + estás en coyote (o grounded)
         if (jumpBufferTimer > 0f && coyoteTimer > 0f)
         {
             verticalVelocity = Mathf.Sqrt(jumpHeight * -2f * gravity);
-
-            // Consumir buffer/coyote para evitar doble salto accidental
             jumpBufferTimer = 0f;
             coyoteTimer = 0f;
         }
@@ -144,12 +232,69 @@ public class PlayerMovement : MonoBehaviour
     {
         if (controller.isGrounded)
         {
-            // “Pegado al suelo” típico con CharacterController
             if (verticalVelocity < 0f)
                 verticalVelocity = -2f;
 
-            // Recarga coyote mientras estás grounded
             coyoteTimer = coyoteTime;
         }
+    }
+
+    private void CameraEffects()
+    {
+        if (thirdPersonFollow == null)
+            return;
+
+        // Sprint distance (si estás apuntando, mantén base)
+        bool isMoving = input.move.sqrMagnitude > moveThreshold;
+        bool isAiming = input.aimHeld;
+        bool isSprinting = isMoving && input.sprintHeld && !isAiming;
+
+        float targetDistance = isSprinting ? sprintCameraDistance : baseCameraDistance;
+
+        thirdPersonFollow.CameraDistance = Mathf.Lerp(thirdPersonFollow.CameraDistance, targetDistance,
+            Time.deltaTime * cameraDistanceSmooth);
+
+        // Shoulder Y bob: Walk vs Sprint. Si apuntas -> sin bob (vuelve a base)
+        float targetShoulderY = baseShoulderY;
+
+        if (!isAiming && isMoving)
+        {
+            float amp = isSprinting ? sprintBobAmplitude : walkBobAmplitude;
+            float freq = isSprinting ? sprintBobFrequency : walkBobFrequency;
+
+            float bob = Mathf.Sin(Time.time * freq) * amp;
+            targetShoulderY = baseShoulderY + bob;
+        }
+
+        Vector3 shoulder = thirdPersonFollow.ShoulderOffset;
+        shoulder.y = Mathf.Lerp(shoulder.y, targetShoulderY, Time.deltaTime * shoulderSmooth);
+        thirdPersonFollow.ShoulderOffset = shoulder;
+    }
+
+    private void DebugTransitions()
+    {
+        bool isMoving = input.move.sqrMagnitude > moveThreshold;
+        bool isAiming = input.aimHeld;
+        bool isSprinting = isMoving && input.sprintHeld && !isAiming;
+        bool isWalking = isMoving && !isSprinting && !isAiming;
+
+        if (isWalking && !wasWalking)
+            Debug.Log("Walk: ON (ShoulderOffset.y bob activo)");
+        if (!isWalking && wasWalking)
+            Debug.Log("Walk: OFF");
+
+        if (isSprinting && !wasSprinting)
+            Debug.Log("Sprint: ON (ShoulderOffset.y bob más rápido/agitado)");
+        if (!isSprinting && wasSprinting)
+            Debug.Log("Sprint: OFF");
+
+        if (isAiming && !wasAiming)
+            Debug.Log("Aim: ON (bob desactivado)");
+        if (!isAiming && wasAiming)
+            Debug.Log("Aim: OFF");
+
+        wasWalking = isWalking;
+        wasSprinting = isSprinting;
+        wasAiming = isAiming;
     }
 }

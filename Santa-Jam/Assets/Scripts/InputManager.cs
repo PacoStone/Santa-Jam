@@ -6,8 +6,15 @@ public class InputManager : MonoBehaviour
 {
     [HideInInspector] public Vector2 move;
     [HideInInspector] public Vector2 look;
+
     [HideInInspector] public bool jumpPressed;
     [HideInInspector] public bool sprintHeld;
+
+    [HideInInspector] public bool crouchHeld;
+    [HideInInspector] public bool aimHeld;
+    [HideInInspector] public bool attackPressed;
+
+    [HideInInspector] public bool pausePressed;
 
     [HideInInspector] public bool usingGamepad;
 
@@ -18,6 +25,12 @@ public class InputManager : MonoBehaviour
     private InputAction jumpAction;
     private InputAction sprintAction;
 
+    private InputAction crouchAction;
+    private InputAction aimAction;
+    private InputAction attackAction;
+
+    private InputAction pauseAction;
+
     private void Awake()
     {
         playerInput = GetComponent<PlayerInput>();
@@ -27,11 +40,16 @@ public class InputManager : MonoBehaviour
         lookAction = actions.FindAction("Look", true);
         jumpAction = actions.FindAction("Jump", true);
         sprintAction = actions.FindAction("Sprint", true);
+
+        crouchAction = actions.FindAction("Crouch", true);
+        aimAction = actions.FindAction("Aim", true);
+        attackAction = actions.FindAction("Attack", true);
+
+        pauseAction = actions.FindAction("Pausar", true);
     }
 
     private void Update()
     {
-        // Control scheme: suele ser "Keyboard&Mouse" y "Gamepad" (según tu asset)
         usingGamepad = playerInput != null && playerInput.currentControlScheme == "Gamepad";
 
         move = moveAction.ReadValue<Vector2>();
@@ -39,5 +57,11 @@ public class InputManager : MonoBehaviour
 
         jumpPressed = jumpAction.WasPressedThisFrame();
         sprintHeld = sprintAction.IsPressed();
+
+        crouchHeld = crouchAction.IsPressed();
+        aimHeld = aimAction.IsPressed();
+        attackPressed = attackAction.WasPressedThisFrame();
+
+        pausePressed = pauseAction.WasPressedThisFrame();
     }
 }
