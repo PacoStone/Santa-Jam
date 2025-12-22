@@ -1,0 +1,37 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3838fa04a48f1cf47aa5eeb63031233c, type: 3}
+  m_Name: Gun
+  m_EditorClassIdentifier: Assembly-CSharp::WeaponDa
+  ItemName: Pistola
+  Icon: {fileID: 21300000, guid: d9a30704871d98646beb98ab5cd8d2a5, type: 3}
+  Description: Pedazo de pistola
+  Category: 1
+  PreviewAnchorPosition: {x: 0, y: 0}
+  HandsToHold: 0
+  Class: 0
+  Automatic: 0
+  FireRate: 10
+  MaxReserveAmmo: 90
+  BulletsPerMagazine: 30
+  ReloadTime: 1.6
+  HitDistance: 30
+  EnvironmentMask:
+    serializedVersion: 2
+    m_Bits: 64
+  DecalPrefabs:
+  - {fileID: 5683174621224378657, guid: 0e7a3d0dda4480c4eb8dcb56aa448a0f, type: 3}
+  DecalTextureFallback: {fileID: 2800000, guid: 0e03644ee250e0142a11910ce020819a, type: 3}
+  DecalSurfaceOffset: 0.0015
+  DecalSize: 0.12
+  RandomDecalRotation: 1
+  DebugSpawnBullet: 1
