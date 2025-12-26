@@ -8,6 +8,9 @@ public class ArmourRuntime : MonoBehaviour
     [Header("Runtime (solo para ver)")]
     [SerializeField] private int currentArmour;
 
+    public ArmourDa CurrentArmourData => armourData;
+    public int CurrentArmour => currentArmour;
+
     public void SetArmour(ArmourDa newArmour)
     {
         armourData = newArmour;
@@ -28,6 +31,17 @@ public class ArmourRuntime : MonoBehaviour
         {
             currentArmour = armourData.TotalArmourPoints;
         }
+    }
+
+    public void SetCurrentArmour(int value)
+    {
+        if (armourData == null)
+        {
+            currentArmour = 0;
+            return;
+        }
+
+        currentArmour = Mathf.Clamp(value, 0, armourData.TotalArmourPoints);
     }
 
     public int ApplyArmourToDamage(int damage)

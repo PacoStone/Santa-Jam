@@ -5,9 +5,17 @@ public class HealthRuntime : MonoBehaviour
     [SerializeField] private int maxHealth = 100;
     [SerializeField] private int currentHealth;
 
+    public int CurrentHealth => currentHealth;
+    public int MaxHealth => maxHealth;
+
     private void Awake()
     {
         currentHealth = maxHealth;
+    }
+
+    public void SetHealth(int value)
+    {
+        currentHealth = Mathf.Clamp(value, 0, maxHealth);
     }
 
     public bool Heal(int amount)

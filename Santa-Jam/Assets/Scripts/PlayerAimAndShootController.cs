@@ -104,13 +104,12 @@ public class PlayerAimAndShootController : MonoBehaviour
 
     private void Update()
     {
-        if (GameManager.Instance != null)
+        /*
+        if (GameManager.Instance.IsPaused)
         {
-            if (GameManager.Instance.IsPaused)
-            {
-                return;
-            }
+            return;
         }
+        */
 
         bool aimingNow = IsAiming();
 
@@ -221,14 +220,15 @@ public class PlayerAimAndShootController : MonoBehaviour
         {
             return true;
         }
-
+        /*
         if (!GameManager.Instance.AimAssistEnabled)
         {
             return false;
         }
-
+        */
         return true;
     }
+
     #endregion
 
     #region LOOK

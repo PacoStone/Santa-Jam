@@ -12,6 +12,12 @@ public class WeaponRuntime : MonoBehaviour
         Equip(weaponData);
     }
 
+    public void SetAmmo(int magazine, int reserve)
+    {
+        currentMagazine = Mathf.Max(0, magazine);
+        currentReserve = Mathf.Max(0, reserve);
+    }
+
     public void Equip(WeaponDa data)
     {
         weaponData = data;

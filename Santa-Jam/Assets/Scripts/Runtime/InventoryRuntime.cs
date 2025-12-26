@@ -5,6 +5,8 @@ public class InventoryRuntime : MonoBehaviour
 {
     private Dictionary<string, int> items = new Dictionary<string, int>();
 
+    public IReadOnlyDictionary<string, int> GetSnapshot() => items;
+
     public void AddItem(InGameItem item, int amount)
     {
         if (item == null)
@@ -18,5 +20,9 @@ public class InventoryRuntime : MonoBehaviour
             items.Add(key, amount);
 
         Debug.Log($"Inventory: {key} = {items[key]}");
+    }
+    public void ClearAll()
+    {
+        items.Clear();
     }
 }
