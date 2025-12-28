@@ -91,6 +91,23 @@ public class PlayerAimAndShootController : MonoBehaviour
 
     private Vignette vignette;
 
+    [Header("Shoot - Raycast")]
+    [SerializeField] private float shootRange = 80f;
+    [SerializeField] private LayerMask environmentMask; // asigna aquí la Layer "Enviorement"
+    [SerializeField] private bool drawShootRay = true;
+    [SerializeField] private float rayDrawDuration = 0.10f;
+
+    [Header("Shoot - Impact FX")]
+    [SerializeField] private GameObject bulletHoleDecalPrefab;  // prefab del decal
+    [SerializeField] private float decalOffset = 0.01f;         // para evitar z-fighting
+    [SerializeField] private Vector2 decalScaleRange = new Vector2(0.18f, 0.28f);
+    [SerializeField] private float decalLifeTime = 25f;
+    [SerializeField] private Transform shootOrigin; // hijo de "arma"
+    [SerializeField] private float shootOriginForwardOffset = 0.03f;
+
+    [SerializeField] private ParticleSystem impactParticlesPrefab; // prefab de partículas
+    [SerializeField] private float particlesLifeTime = 3f;
+
 
     private void Awake()
     {
@@ -422,7 +439,71 @@ public class PlayerAimAndShootController : MonoBehaviour
             return;
 
         Debug.Log("Shoot");
+
+        // 1) Dirección EXACTA del apuntado del jugador (cámara)
+        Vector2 aimCenter = GetAimCenterViewport();
+        Ray aimRay = mainCamera.ViewportPointToRay(new Vector3(aimCenter.x, aimCenter.y, 0f));
+
+        Vector3 shootDir = aimRay.direction.normalized;
+
+        Vector3 origin = shootOrigin != null ? shootOrigin.position : mainCamera.transform.position;
+
+        // Evitar que el ray nazca dentro de colliders
+        origin += shootDir * shootOriginForwardOffset;
+
+        // 3) Debug visual
+        if (drawShootRay)
+        {
+            Debug.DrawRay(origin, shootDir * shootRange, Color.yellow, rayDrawDuration);
+        }
+
+        // 4) Raycast REAL (misma dirección que el apuntado)
+        if (Physics.Raycast(origin, shootDir, out RaycastHit hit, shootRange, ~0, QueryTriggerInteraction.Ignore))
+        {
+            if (drawShootRay)
+            {
+                Debug.DrawLine(origin, hit.point, Color.red, rayDrawDuration);
+            }
+
+            int envLayer = LayerMask.NameToLayer("Enviorement");
+            if (envLayer != -1 && hit.collider.gameObject.layer == envLayer)
+            {
+                SpawnBulletHoleDecal(hit);
+                SpawnImpactParticles(hit);
+            }
+        }
     }
+
+    private void SpawnBulletHoleDecal(RaycastHit hit)
+    {
+        if (bulletHoleDecalPrefab == null)
+            return;
+
+        Vector3 pos = hit.point + hit.normal * decalOffset;
+        Quaternion rot = Quaternion.LookRotation(-hit.normal, Vector3.up);
+
+        // Rotación aleatoria alrededor de la normal para que no se repita el patrón
+        rot *= Quaternion.Euler(0f, 0f, Random.Range(0f, 360f));
+
+        GameObject decal = Instantiate(bulletHoleDecalPrefab, pos, rot);
+
+        float s = Random.Range(decalScaleRange.x, decalScaleRange.y);
+        decal.transform.localScale = new Vector3(s, s, s);
+
+        Destroy(decal, Mathf.Max(0.5f, decalLifeTime));
+    }
+
+    private void SpawnImpactParticles(RaycastHit hit)
+    {
+        if (impactParticlesPrefab == null)
+            return;
+
+        Quaternion rot = Quaternion.LookRotation(hit.normal);
+        ParticleSystem fx = Instantiate(impactParticlesPrefab, hit.point, rot);
+
+        Destroy(fx.gameObject, Mathf.Max(0.5f, particlesLifeTime));
+    }
+
     #endregion
 
     #region AIM ASSIST CORE
