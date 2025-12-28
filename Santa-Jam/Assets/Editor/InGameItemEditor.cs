@@ -120,10 +120,10 @@ public class InGameItemEditor : Editor
             return;
         }
 
-        DrawGroupBox("Weapon - Class", () =>
-        {
-            EditorGUILayout.PropertyField(weaponClass);
-        });
+        //DrawGroupBox("Weapon - Class", () =>
+        //{
+        //    EditorGUILayout.PropertyField(weaponClass);
+        //});
 
         DrawGroupBox("Weapon - Fire", () =>
         {

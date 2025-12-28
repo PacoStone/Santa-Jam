@@ -17,5 +17,8 @@ public class WeaponDa : InGameItem
     public bool RandomDecalRotation = true;
     public bool DebugSpawnBullet = true;
 
-    private void OnValidate() => Category = ItemCategory.Weapons;
+    private void OnValidate()
+    {
+        Category = ItemCategory.Weapons;
+    }
 }
