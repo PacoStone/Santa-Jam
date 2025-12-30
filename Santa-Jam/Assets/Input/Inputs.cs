@@ -172,6 +172,15 @@ public partial class @Inputs: IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""Reload"",
+                    ""type"": ""Button"",
+                    ""id"": ""7ade3c84-e46b-4182-aee1-70672fab3ba8"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
                 }
             ],
             ""bindings"": [
@@ -579,6 +588,28 @@ public partial class @Inputs: IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""groups"": """",
                     ""action"": ""ShowGuns"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""f97e76cf-25e5-4479-9f32-e14596208dee"",
+                    ""path"": ""<Keyboard>/r"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Reload"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""b684fbb7-bdba-4ca3-b044-ad7139a32110"",
+                    ""path"": ""<Gamepad>/buttonWest"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Reload"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 }
@@ -1127,6 +1158,7 @@ public partial class @Inputs: IInputActionCollection2, IDisposable
         m_Jugador_Attack = m_Jugador.FindAction("Attack", throwIfNotFound: true);
         m_Jugador_Aim = m_Jugador.FindAction("Aim", throwIfNotFound: true);
         m_Jugador_ShowGuns = m_Jugador.FindAction("ShowGuns", throwIfNotFound: true);
+        m_Jugador_Reload = m_Jugador.FindAction("Reload", throwIfNotFound: true);
         // UI
         m_UI = asset.FindActionMap("UI", throwIfNotFound: true);
         m_UI_GoBack = m_UI.FindAction("Go Back", throwIfNotFound: true);
@@ -1228,6 +1260,7 @@ public partial class @Inputs: IInputActionCollection2, IDisposable
     private readonly InputAction m_Jugador_Attack;
     private readonly InputAction m_Jugador_Aim;
     private readonly InputAction m_Jugador_ShowGuns;
+    private readonly InputAction m_Jugador_Reload;
     /// <summary>
     /// Provides access to input actions defined in input action map "Jugador".
     /// </summary>
@@ -1275,6 +1308,10 @@ public partial class @Inputs: IInputActionCollection2, IDisposable
         /// Provides access to the underlying input action "Jugador/ShowGuns".
         /// </summary>
         public InputAction @ShowGuns => m_Wrapper.m_Jugador_ShowGuns;
+        /// <summary>
+        /// Provides access to the underlying input action "Jugador/Reload".
+        /// </summary>
+        public InputAction @Reload => m_Wrapper.m_Jugador_Reload;
         /// <summary>
         /// Provides access to the underlying input action map instance.
         /// </summary>
@@ -1328,6 +1365,9 @@ public partial class @Inputs: IInputActionCollection2, IDisposable
             @ShowGuns.started += instance.OnShowGuns;
             @ShowGuns.performed += instance.OnShowGuns;
             @ShowGuns.canceled += instance.OnShowGuns;
+            @Reload.started += instance.OnReload;
+            @Reload.performed += instance.OnReload;
+            @Reload.canceled += instance.OnReload;
         }
 
         /// <summary>
@@ -1366,6 +1406,9 @@ public partial class @Inputs: IInputActionCollection2, IDisposable
             @ShowGuns.started -= instance.OnShowGuns;
             @ShowGuns.performed -= instance.OnShowGuns;
             @ShowGuns.canceled -= instance.OnShowGuns;
+            @Reload.started -= instance.OnReload;
+            @Reload.performed -= instance.OnReload;
+            @Reload.canceled -= instance.OnReload;
         }
 
         /// <summary>
@@ -1653,6 +1696,13 @@ public partial class @Inputs: IInputActionCollection2, IDisposable
         /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
         /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
         void OnShowGuns(InputAction.CallbackContext context);
+        /// <summary>
+        /// Method invoked when associated input action "Reload" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnReload(InputAction.CallbackContext context);
     }
     /// <summary>
     /// Interface to implement callback methods for all input action callbacks associated with input actions defined by "UI" which allows adding and removing callbacks.

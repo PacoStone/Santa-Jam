@@ -1582,6 +1582,157 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &540881865
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 540881866}
+  - component: {fileID: 540881869}
+  - component: {fileID: 540881868}
+  - component: {fileID: 540881867}
+  m_Layer: 5
+  m_Name: "munici\xF3n"
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &540881866
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 540881865}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 705680887}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 0}
+  m_AnchoredPosition: {x: -785, y: -436}
+  m_SizeDelta: {x: 200, y: 50}
+  m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &540881867
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 540881865}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b5aa37abf36cf0c46a9034b3492d08bf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::AmmoUI
+  weaponRuntime: {fileID: 989332740}
+  ammoText: {fileID: 540881868}
+--- !u!114 &540881868
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 540881865}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f4688fdb7df04437aeb418b961361dc5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.TextMeshPro::TMPro.TextMeshProUGUI
+  m_Material: {fileID: 0}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_RaycastTarget: 1
+  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
+  m_Maskable: 1
+  m_OnCullStateChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  m_text: 0 / 0
+  m_isRightToLeft: 0
+  m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
+  m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
+  m_fontSharedMaterials: []
+  m_fontMaterial: {fileID: 0}
+  m_fontMaterials: []
+  m_fontColor32:
+    serializedVersion: 2
+    rgba: 4294967295
+  m_fontColor: {r: 1, g: 1, b: 1, a: 1}
+  m_enableVertexGradient: 0
+  m_colorMode: 3
+  m_fontColorGradient:
+    topLeft: {r: 1, g: 1, b: 1, a: 1}
+    topRight: {r: 1, g: 1, b: 1, a: 1}
+    bottomLeft: {r: 1, g: 1, b: 1, a: 1}
+    bottomRight: {r: 1, g: 1, b: 1, a: 1}
+  m_fontColorGradientPreset: {fileID: 0}
+  m_spriteAsset: {fileID: 0}
+  m_tintAllSprites: 0
+  m_StyleSheet: {fileID: 0}
+  m_TextStyleHashCode: -1183493901
+  m_overrideHtmlColors: 0
+  m_faceColor:
+    serializedVersion: 2
+    rgba: 4294967295
+  m_fontSize: 44.75
+  m_fontSizeBase: 36
+  m_fontWeight: 400
+  m_enableAutoSizing: 1
+  m_fontSizeMin: 18
+  m_fontSizeMax: 72
+  m_fontStyle: 1
+  m_HorizontalAlignment: 2
+  m_VerticalAlignment: 512
+  m_textAlignment: 65535
+  m_characterSpacing: 0
+  m_wordSpacing: 0
+  m_lineSpacing: 0
+  m_lineSpacingMax: 0
+  m_paragraphSpacing: 0
+  m_charWidthMaxAdj: 0
+  m_TextWrappingMode: 1
+  m_wordWrappingRatios: 0.4
+  m_overflowMode: 0
+  m_linkedTextComponent: {fileID: 0}
+  parentLinkedComponent: {fileID: 0}
+  m_enableKerning: 0
+  m_ActiveFontFeatures: 6e72656b
+  m_enableExtraPadding: 0
+  checkPaddingRequired: 0
+  m_isRichText: 1
+  m_EmojiFallbackSupport: 1
+  m_parseCtrlCharacters: 1
+  m_isOrthographic: 1
+  m_isCullingEnabled: 0
+  m_horizontalMapping: 0
+  m_verticalMapping: 0
+  m_uvLineOffset: 0
+  m_geometrySortingOrder: 0
+  m_IsTextObjectScaleStatic: 0
+  m_VertexBufferAutoSizeReduction: 0
+  m_useMaxVisibleDescender: 1
+  m_pageToDisplay: 1
+  m_margin: {x: 0, y: 0, z: 0, w: 0}
+  m_isUsingLegacyAnimationComponent: 0
+  m_isVolumetricText: 0
+  m_hasFontAssetChanged: 0
+  m_baseMaterial: {fileID: 0}
+  m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
+--- !u!222 &540881869
+CanvasRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 540881865}
+  m_CullTransparentMesh: 1
 --- !u!1 &550047133
 GameObject:
   m_ObjectHideFlags: 0
@@ -2364,7 +2515,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 174, y: 0}
+  m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 100, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &667884604
@@ -2432,7 +2583,8 @@ RectTransform:
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children: []
+  m_Children:
+  - {fileID: 540881866}
   m_Father: {fileID: 156349821}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
@@ -2741,7 +2893,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 174, y: 0}
+  m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 100, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &975983549
@@ -2830,7 +2982,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::WeaponRuntime
   weaponData: {fileID: 11400000, guid: 79fee4b175b1c7146b28ead661e17857, type: 2}
   currentMagazine: 10
-  currentReserve: 10
+  currentReserveAmmo: 0
   reloading: 0
 --- !u!1 &1027834306
 GameObject:
@@ -3590,6 +3742,7 @@ MonoBehaviour:
   pausePressed: 0
   usingGamepad: 0
   showGunsPressed: 0
+  reloadPressed: 0
 --- !u!65 &1177468197
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -3630,6 +3783,7 @@ MonoBehaviour:
   hipFireReticleImage: {fileID: 667884604}
   hipFireReticleAlphaNormal: 0.35
   hipFireReticleAlphaAiming: 1
+  hideReticleWhileNotAiming: 1
   loopReticleWhileLocked: 1
   reticleLoopDuration: 1
   reticleScaleMultiplier: 2
@@ -3649,34 +3803,31 @@ MonoBehaviour:
   sprintBobFrequency: 11
   shoulderSmooth: 12
   aimAssistEnabled: 1
-  aimAssistViewportRadius: 0.06
-  aimAssistMaxDistance: 50
-  aimAssistGain: 900
-  aimAssistMaxYawSpeed: 180
-  aimAssistMaxPitchSpeed: 180
-  aimAssistMinDot: 0.75
-  useReticleAsAimCenter: 1
   mouseSensitivity: 2
   stickSensitivity: 180
   stickLookSmoothing: 0.04
   minPitch: -80
   maxPitch: 80
-  shootRange: 800
+  arma: {fileID: 989332739}
+  shootOriginForwardOffset: 0.1
+  bulletPrefab: {fileID: 5683174621224378657, guid: 0e7a3d0dda4480c4eb8dcb56aa448a0f, type: 3}
+  bulletSpeed: 60
+  bulletLifeTime: 3
+  hipFireAngleOffset: {x: 16, y: -1.4}
+  aimAngleOffset: {x: 2.4, y: -0.4}
   environmentMask:
     serializedVersion: 2
     m_Bits: 64
-  drawShootRay: 1
-  rayDrawDuration: 10
   bulletHoleDecalPrefab: {fileID: 2823146669534633943, guid: 183fa1a117df23c47a12d2e1734155d8, type: 3}
   decalOffset: 0.1
   decalScaleRange: {x: 0.18, y: 0.28}
   decalLifeTime: 10
-  arma: {fileID: 989332739}
-  shootOriginForwardOffset: 0.1
-  hipFireAngleOffset: {x: 16, y: -1.4}
-  aimAngleOffset: {x: 18, y: -3}
   impactParticlesPrefab: {fileID: 3762537195538468364, guid: 39c821cf613cfa94b807e5c96863f378, type: 3}
   particlesLifeTime: 2.5
+  autoReloadWhenEmpty: 1
+  drawShootRay: 1
+  rayDrawDuration: 10
+  weaponRuntime: {fileID: 989332740}
 --- !u!95 &1177468199
 Animator:
   serializedVersion: 7

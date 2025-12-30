@@ -20,6 +20,8 @@ public class InputManager : MonoBehaviour
 
     [HideInInspector] public bool showGunsPressed;
 
+    [HideInInspector] public bool reloadPressed;
+
     private PlayerInput playerInput;
 
     private InputAction moveAction;
@@ -33,6 +35,7 @@ public class InputManager : MonoBehaviour
 
     private InputAction pauseAction;
     private InputAction showGunsAction;
+    private InputAction reloadAction;
 
 
     private void Awake()
@@ -51,6 +54,7 @@ public class InputManager : MonoBehaviour
 
         pauseAction = actions.FindAction("Pausar", true);
         showGunsAction = actions.FindAction("ShowGuns", true);
+        reloadAction = actions.FindAction("Reload", true);
     }
 
     private void Update()
@@ -69,5 +73,6 @@ public class InputManager : MonoBehaviour
 
         pausePressed = pauseAction.WasPressedThisFrame();
         showGunsPressed = showGunsAction.WasPressedThisFrame();
+        reloadPressed = reloadAction.WasPressedThisFrame();
     }
 }
