@@ -3,7 +3,6 @@ using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 using UnityEngine.UI;
-using static UnityEditor.ShaderData;
 
 [RequireComponent(typeof(InputManager))]
 [RequireComponent(typeof(PlayerMovementController))]
@@ -72,6 +71,29 @@ public class PlayerAimAndShootController : MonoBehaviour
     [SerializeField] private float minPitch = -80f;
     [SerializeField] private float maxPitch = 80f;
 
+    [Header("Shoot - Raycast")]
+    [SerializeField] private float shootRange = 80f;
+    [SerializeField] private LayerMask environmentMask; // Layer "Enviorement"
+    [SerializeField] private bool drawShootRay = true;
+    [SerializeField] private float rayDrawDuration = 0.10f;
+
+    [Header("Shoot - Impact FX")]
+    [SerializeField] private GameObject bulletHoleDecalPrefab;  // prefab del decal
+    [SerializeField] private float decalOffset = 0.01f;         // para evitar z-fighting
+    [SerializeField] private Vector2 decalScaleRange = new Vector2(0.18f, 0.28f);
+    [SerializeField] private float decalLifeTime = 25f;
+
+    [Header("Shoot - Weapon Origin")]
+    [SerializeField] private Transform arma;       // EmptyObject llamado "arma" (origen REAL del disparo)
+    [SerializeField] private float shootOriginForwardOffset = 0.03f;
+
+    [Header("Shoot - Direction Offset")]
+    [SerializeField] private Vector2 hipFireAngleOffset = new Vector2(18f, -2f); // X = yaw, Y = pitch
+    [SerializeField] private Vector2 aimAngleOffset = new Vector2(15f, -2f);     // X = yaw, Y = pitch
+
+    [SerializeField] private ParticleSystem impactParticlesPrefab; // prefab de partículas
+    [SerializeField] private float particlesLifeTime = 3f;
+
     private InputManager input;
     private PlayerMovementController movement;
     private CinemachineThirdPersonFollow thirdPersonFollow;
@@ -91,24 +113,6 @@ public class PlayerAimAndShootController : MonoBehaviour
 
     private Vignette vignette;
 
-    [Header("Shoot - Raycast")]
-    [SerializeField] private float shootRange = 80f;
-    [SerializeField] private LayerMask environmentMask; // asigna aquí la Layer "Enviorement"
-    [SerializeField] private bool drawShootRay = true;
-    [SerializeField] private float rayDrawDuration = 0.10f;
-
-    [Header("Shoot - Impact FX")]
-    [SerializeField] private GameObject bulletHoleDecalPrefab;  // prefab del decal
-    [SerializeField] private float decalOffset = 0.01f;         // para evitar z-fighting
-    [SerializeField] private Vector2 decalScaleRange = new Vector2(0.18f, 0.28f);
-    [SerializeField] private float decalLifeTime = 25f;
-    [SerializeField] private Transform shootOrigin; // hijo de "arma"
-    [SerializeField] private float shootOriginForwardOffset = 0.03f;
-
-    [SerializeField] private ParticleSystem impactParticlesPrefab; // prefab de partículas
-    [SerializeField] private float particlesLifeTime = 3f;
-
-
     private void Awake()
     {
         input = GetComponent<InputManager>();
@@ -121,19 +125,13 @@ public class PlayerAimAndShootController : MonoBehaviour
 
     private void Update()
     {
-        /*
-        if (GameManager.Instance.IsPaused)
-        {
-            return;
-        }
-        */
-
         bool aimingNow = IsAiming();
 
         HandleLook(aimingNow);
         HandleCamera(aimingNow);
         HandleReticle(aimingNow);
-        HandleShoot(aimingNow);
+
+        HandleShoot();
     }
 
     #region Setup
@@ -175,18 +173,15 @@ public class PlayerAimAndShootController : MonoBehaviour
     private void SetupVignette()
     {
         if (globalVolume == null)
-        {
             return;
-        }
 
         if (globalVolume.profile == null)
-        {
             return;
-        }
 
         globalVolume.profile.TryGet(out vignette);
         ApplyVignetteInstant(vignetteIntensityHip);
     }
+
     #endregion
 
     #region AIM STATE
@@ -194,14 +189,10 @@ public class PlayerAimAndShootController : MonoBehaviour
     private bool IsAiming()
     {
         if (!input.aimHeld)
-        {
             return false;
-        }
 
         if (!CanAim())
-        {
             return false;
-        }
 
         return true;
     }
@@ -209,19 +200,13 @@ public class PlayerAimAndShootController : MonoBehaviour
     private bool CanAim()
     {
         if (!movement.IsGrounded)
-        {
             return false;
-        }
 
         if (movement.SprintHeld)
-        {
             return false;
-        }
 
         if (movement.JumpPressed)
-        {
             return false;
-        }
 
         return true;
     }
@@ -229,20 +214,11 @@ public class PlayerAimAndShootController : MonoBehaviour
     private bool IsAimAssistActive()
     {
         if (!aimAssistEnabled)
-        {
             return false;
-        }
 
         if (GameManager.Instance == null)
-        {
             return true;
-        }
-        /*
-        if (!GameManager.Instance.AimAssistEnabled)
-        {
-            return false;
-        }
-        */
+
         return true;
     }
 
@@ -285,12 +261,19 @@ public class PlayerAimAndShootController : MonoBehaviour
 
         cameraPitch = Mathf.Clamp(cameraPitch, minPitch, maxPitch);
 
-        cameraTransform.localRotation = Quaternion.Euler(cameraPitch, 0f, 0f);
+        if (cameraTransform != null)
+        {
+            cameraTransform.localRotation = Quaternion.Euler(cameraPitch, 0f, 0f);
+        }
+
         transform.Rotate(Vector3.up * yawDelta);
     }
 
     private void UpdateAimAssist(ref float yawDelta)
     {
+        if (mainCamera == null)
+            return;
+
         Vector3 targetPoint;
         Transform target = FindAimAssistTarget(out targetPoint);
 
@@ -305,6 +288,7 @@ public class PlayerAimAndShootController : MonoBehaviour
         yawDelta += correction.x * Time.deltaTime;
         cameraPitch -= correction.y * Time.deltaTime;
     }
+
     #endregion
 
     #region CAMERA
@@ -350,6 +334,7 @@ public class PlayerAimAndShootController : MonoBehaviour
 
         UpdateVignetteFromCameraDistance(aimingNow);
     }
+
     #endregion
 
     #region RETICLE
@@ -398,7 +383,6 @@ public class PlayerAimAndShootController : MonoBehaviour
         if (hipFireReticle != null)
         {
             hipFireReticle.localScale = reticleBaseScale * Mathf.Lerp(1f, reticleScaleMultiplier, pulse);
-
             hipFireReticle.localRotation = Quaternion.Euler(0f, 0f, reticleRotationDegreesPerSecond * reticleLoopTime);
         }
 
@@ -426,50 +410,57 @@ public class PlayerAimAndShootController : MonoBehaviour
         c.a = Mathf.Clamp01(alpha);
         hipFireReticleImage.color = c;
     }
+
     #endregion
 
     #region SHOOT
 
-    private void HandleShoot(bool aimingNow)
+    private void HandleShoot()
     {
-        if (!aimingNow)
+        if (!input.attackPressed)
             return;
 
-        if (!input.attackPressed)
+        if (arma == null)
             return;
 
         Debug.Log("Shoot");
 
-        // 1) Dirección EXACTA del apuntado del jugador (cámara)
-        Vector2 aimCenter = GetAimCenterViewport();
-        Ray aimRay = mainCamera.ViewportPointToRay(new Vector3(aimCenter.x, aimCenter.y, 0f));
+        bool aimingNow = IsAiming();
 
-        Vector3 shootDir = aimRay.direction.normalized;
+        Vector3 origin = arma.position;
 
-        Vector3 origin = shootOrigin != null ? shootOrigin.position : mainCamera.transform.position;
+        // Dirección base: arma.forward, con offset manual (hip/aim)
+        Vector2 activeOffset = aimingNow ? aimAngleOffset : hipFireAngleOffset;
 
-        // Evitar que el ray nazca dentro de colliders
-        origin += shootDir * shootOriginForwardOffset;
+        Quaternion angleOffset = Quaternion.Euler(activeOffset.y, activeOffset.x, 0f);
 
-        // 3) Debug visual
+        Vector3 direction = angleOffset * arma.forward;
+        direction.Normalize();
+
+        origin += direction * shootOriginForwardOffset;
+
         if (drawShootRay)
         {
-            Debug.DrawRay(origin, shootDir * shootRange, Color.yellow, rayDrawDuration);
+            Debug.DrawRay(origin, direction * shootRange, Color.yellow, rayDrawDuration);
         }
 
-        // 4) Raycast REAL (misma dirección que el apuntado)
-        if (Physics.Raycast(origin, shootDir, out RaycastHit hit, shootRange, ~0, QueryTriggerInteraction.Ignore))
+        if (Physics.Raycast(origin, direction, out RaycastHit hit, shootRange, environmentMask, QueryTriggerInteraction.Ignore))
         {
             if (drawShootRay)
             {
                 Debug.DrawLine(origin, hit.point, Color.red, rayDrawDuration);
             }
 
-            int envLayer = LayerMask.NameToLayer("Enviorement");
-            if (envLayer != -1 && hit.collider.gameObject.layer == envLayer)
+            Debug.Log($"Impacto en: {hit.collider.name}");
+
+            SpawnBulletHoleDecal(hit);
+            SpawnImpactParticles(hit);
+        }
+        else
+        {
+            if (drawShootRay)
             {
-                SpawnBulletHoleDecal(hit);
-                SpawnImpactParticles(hit);
+                Debug.DrawLine(origin, origin + direction * shootRange, Color.cyan, rayDrawDuration);
             }
         }
     }
@@ -482,7 +473,6 @@ public class PlayerAimAndShootController : MonoBehaviour
         Vector3 pos = hit.point + hit.normal * decalOffset;
         Quaternion rot = Quaternion.LookRotation(-hit.normal, Vector3.up);
 
-        // Rotación aleatoria alrededor de la normal para que no se repita el patrón
         rot *= Quaternion.Euler(0f, 0f, Random.Range(0f, 360f));
 
         GameObject decal = Instantiate(bulletHoleDecalPrefab, pos, rot);
@@ -512,6 +502,9 @@ public class PlayerAimAndShootController : MonoBehaviour
     {
         bestPoint = Vector3.zero;
 
+        if (mainCamera == null)
+            return null;
+
         Vector2 center = GetAimCenterViewport();
 
         GameObject[] enemies = GameObject.FindGameObjectsWithTag(enemyTag);
@@ -528,32 +521,22 @@ public class PlayerAimAndShootController : MonoBehaviour
             float distance = toTarget.magnitude;
 
             if (distance > aimAssistMaxDistance)
-            {
-                continue; //corta la iteración actual del bucle y pasa directamente a la siguiente.
-                //Si este enemigo está detrás de la cámara, ignóralo completamente y pasa al siguiente enemigo.
-            }
+                continue;
 
             Vector3 dir = toTarget.normalized;
 
             if (Vector3.Dot(mainCamera.transform.forward, dir) < aimAssistMinDot)
-            {
                 continue;
-            }
 
             Vector3 viewport = mainCamera.WorldToViewportPoint(point);
 
             if (viewport.z <= 0f)
-            {
                 continue;
-            }
 
-            float viewportDistance =
-                Vector2.Distance(new Vector2(viewport.x, viewport.y), center);
+            float viewportDistance = Vector2.Distance(new Vector2(viewport.x, viewport.y), center);
 
             if (viewportDistance > aimAssistViewportRadius)
-            {
                 continue;
-            }
 
             float score = viewportDistance * 10f + distance * 0.01f;
 
@@ -573,34 +556,28 @@ public class PlayerAimAndShootController : MonoBehaviour
         Collider collider = enemy.GetComponentInChildren<Collider>();
 
         if (collider != null)
-        {
             return collider.bounds.center;
-        }
 
         Renderer renderer = enemy.GetComponentInChildren<Renderer>();
 
         if (renderer != null)
-        {
             return renderer.bounds.center;
-        }
 
         return enemy.position;
     }
 
     private Vector2 GetAimCorrectionFromViewport(Vector3 targetPoint)
     {
+        if (mainCamera == null)
+            return Vector2.zero;
+
         Vector3 viewport = mainCamera.WorldToViewportPoint(targetPoint);
 
         if (viewport.z <= 0f)
-        {
             return Vector2.zero;
-        }
 
         Vector2 center = GetAimCenterViewport();
-        Vector2 error = new Vector2(
-            viewport.x - center.x,
-            viewport.y - center.y
-        );
+        Vector2 error = new Vector2(viewport.x - center.x, viewport.y - center.y);
 
         float yawSpeed = error.x * aimAssistGain;
         float pitchSpeed = error.y * aimAssistGain;
@@ -614,29 +591,23 @@ public class PlayerAimAndShootController : MonoBehaviour
     private Vector2 GetAimCenterViewport()
     {
         if (!useReticleAsAimCenter)
-        {
-            return 
-                new Vector2(0.5f, 0.5f);
-        }
+            return new Vector2(0.5f, 0.5f);
 
         if (hipFireReticle == null)
-        {
-            return 
-                new Vector2(0.5f, 0.5f);
-        }
+            return new Vector2(0.5f, 0.5f);
 
         Vector2 screen = RectTransformUtility.WorldToScreenPoint(null, hipFireReticle.position);
 
-        return 
-            new Vector2(screen.x / Screen.width, screen.y / Screen.height);
+        return new Vector2(screen.x / Screen.width, screen.y / Screen.height);
     }
+
     #endregion
 
     #region VIGNETTE
 
     private void UpdateVignetteFromCameraDistance(bool aimingNow)
     {
-        if (vignette == null)
+        if (vignette == null || thirdPersonFollow == null)
             return;
 
         float t;
@@ -660,5 +631,6 @@ public class PlayerAimAndShootController : MonoBehaviour
 
         vignette.intensity.value = intensity;
     }
+
     #endregion
 }
