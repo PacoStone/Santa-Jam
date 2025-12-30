@@ -115,6 +115,7 @@ public class PlayerAimAndShootController : MonoBehaviour
     private float cameraPitch;
     private float sprintCameraDistance;
     private float baseShoulderY;
+    private bool aimingNow;
 
     private Vector2 smoothedStickLook;
     private Vector2 stickLookVelocity;
@@ -138,14 +139,18 @@ public class PlayerAimAndShootController : MonoBehaviour
 
     private void Update()
     {
-        bool aimingNow = IsAiming();
+        aimingNow = IsAiming();
 
         HandleLook(aimingNow);
-        HandleCamera(aimingNow);
         HandleReticle(aimingNow);
 
         HandleReloadInput();
         HandleShoot(aimingNow);
+    }
+
+    private void LateUpdate()
+    {
+        HandleCamera(aimingNow);
     }
 
     #region Setup
