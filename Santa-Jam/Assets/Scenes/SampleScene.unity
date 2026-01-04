@@ -3728,17 +3728,24 @@ MonoBehaviour:
   jumpBufferTime: 0.12
   wallCheckDistance: 0.6
   wallJumpForce: 6
+  wallAwayForce: 7
   wallJumpDirection: {x: 1, y: 1.2}
   wallJumpLockTime: 0.15
   wallLayer:
     serializedVersion: 2
     m_Bits: 64
+  minIntoWallDot: 0.35
+  lateralControl: 0.65
   ledgeCheckDistance: 0.6
   ledgeHeight: 1.6
   ledgeClimbOffset: {x: 0, y: 1.2, z: 0.5}
   ledgeLayer:
     serializedVersion: 2
     m_Bits: 128
+  allowLedgeShimmy: 0
+  ledgeShimmySpeed: 2.2
+  ledgeShimmyProbeDistance: 0.6
+  ledgeHangBackOffset: 0.3
 --- !u!143 &1177468195
 CharacterController:
   m_ObjectHideFlags: 0
@@ -5251,7 +5258,7 @@ BoxCollider:
   m_Material: {fileID: 0}
   m_IncludeLayers:
     serializedVersion: 2
-    m_Bits: 64
+    m_Bits: 128
   m_ExcludeLayers:
     serializedVersion: 2
     m_Bits: 0
@@ -5800,8 +5807,8 @@ Transform:
   m_GameObject: {fileID: 1924103165}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 9.34, y: 1.98, z: 9.75}
-  m_LocalScale: {x: 8.6409, y: 4.013942, z: 1}
+  m_LocalPosition: {x: 9.34, y: 1.87, z: 9.75}
+  m_LocalScale: {x: 8, y: 3.8, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
@@ -6366,7 +6373,7 @@ MonoBehaviour:
   Lookahead:
     Enabled: 1
     Time: 0.3
-    Smoothing: 0.15
+    Smoothing: 1
     IgnoreY: 0
 --- !u!114 &2103015865
 MonoBehaviour:
@@ -6403,14 +6410,14 @@ MonoBehaviour:
     Enabled: 1
     ObstacleLayers:
       serializedVersion: 2
-      m_Bits: 64
+      m_Bits: 192
     UseFollowTarget:
       Enabled: 0
       YOffset: 0
     Damping: 0.5
     SmoothingTime: 0.2
   TerrainResolution:
-    Enabled: 0
+    Enabled: 1
     TerrainLayers:
       serializedVersion: 2
       m_Bits: 1
