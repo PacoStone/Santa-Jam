@@ -10,7 +10,8 @@ using UnityEngine.UI;
 public class PlayerAimAndShootController : MonoBehaviour
 {
     [Header("References")]
-    [SerializeField] private Transform cameraTransform;
+    [SerializeField] private Transform cameraTransform; // Legacy / fallback (si no usas cameraTarget)
+    [SerializeField] private Transform cameraTarget;     // Pivot que Cinemachine sigue 
     [SerializeField] private Camera mainCamera;
 
     [Header("Cinemachine")]
@@ -64,6 +65,7 @@ public class PlayerAimAndShootController : MonoBehaviour
     [SerializeField] private float stickLookSmoothing = 0.04f;
     [SerializeField] private float minPitch = -80f;
     [SerializeField] private float maxPitch = 80f;
+    [SerializeField] private bool invertY = false; // NUEVO: invertir eje Y si quieres
 
     [Header("Shoot - Weapon Origin")]
     [SerializeField] private Transform arma; // EmptyObject llamado "arma"
@@ -84,9 +86,8 @@ public class PlayerAimAndShootController : MonoBehaviour
 
     [Header("Shoot - Muzzle Flash (Particle Pack)")]
     [SerializeField] private ParticleSystem muzzleFlashPrefab;
-    // Nombre del child dentro del prefab (según tu jerarquía: "FlashHeadon")
     [SerializeField] private string flashHeadonChildName = "FlashHeadon";
-    [SerializeField] private Transform muzzlePoint; // si es null, usa arma, en este caso sería la pistola
+    [SerializeField] private Transform muzzlePoint;
     [SerializeField] private float muzzleLifeTime = 2f;
 
     [Header("Impact")]
@@ -101,7 +102,6 @@ public class PlayerAimAndShootController : MonoBehaviour
 
     [Header("Reload")]
     [SerializeField] private bool autoReloadWhenEmpty = true;
-    //[SerializeField] private KeyCode reloadKey = KeyCode.R; 
 
     [Header("Debug")]
     [SerializeField] private bool drawShootRay = true;
@@ -126,7 +126,6 @@ public class PlayerAimAndShootController : MonoBehaviour
     private float reticleLoopTime;
 
     private Transform currentAimTarget;
-
     private Vignette vignette;
 
     private void Awake()
@@ -173,6 +172,18 @@ public class PlayerAimAndShootController : MonoBehaviour
 
         baseShoulderY = thirdPersonFollow.ShoulderOffset.y;
         sprintCameraDistance = baseCameraDistance + sprintDistanceDelta;
+
+        // Si no asignaste cameraTarget, sigue funcionando con cameraTransform 
+        // Recomendación: crea un empty "CameraTarget" como hijo del player y asígnalo aquí.
+        if (cameraTarget == null && cameraTransform != null)
+        {
+            cameraTarget = cameraTransform;
+        }
+
+        if (mainCamera == null)
+        {
+            mainCamera = Camera.main;
+        }
     }
 
     private void SetupReticle()
@@ -268,7 +279,13 @@ public class PlayerAimAndShootController : MonoBehaviour
             pitchDelta = mouse.y;
         }
 
-        cameraPitch -= pitchDelta;
+        // Invert Y opcional
+        if (!invertY)
+        {
+            pitchDelta = -pitchDelta;
+        }
+
+        cameraPitch += pitchDelta;
 
         if (aimingNow && IsAimAssistActive())
         {
@@ -281,12 +298,14 @@ public class PlayerAimAndShootController : MonoBehaviour
 
         cameraPitch = Mathf.Clamp(cameraPitch, minPitch, maxPitch);
 
-        if (cameraTransform != null)
+        // PITCH: aquí está la clave -> lo aplicamos al cameraTarget (pivot que Cinemachine debería seguir)
+        if (cameraTarget != null)
         {
-            cameraTransform.localRotation = Quaternion.Euler(cameraPitch, 0f, 0f);
+            cameraTarget.localRotation = Quaternion.Euler(cameraPitch, 0f, 0f);
         }
 
-        transform.Rotate(Vector3.up * yawDelta);
+        // YAW: rota el player (mantienes tu esquema)
+        transform.Rotate(Vector3.up * yawDelta, Space.World);
     }
 
     private void UpdateAimAssist(ref float yawDelta)
@@ -338,7 +357,6 @@ public class PlayerAimAndShootController : MonoBehaviour
 
         Vector3 shoulder = thirdPersonFollow.ShoulderOffset;
         shoulder.y = Mathf.Lerp(shoulder.y, targetShoulderY, Time.deltaTime * shoulderSmooth);
-
         thirdPersonFollow.ShoulderOffset = shoulder;
 
         UpdateVignetteFromCameraDistance(aimingNow);
@@ -449,8 +467,6 @@ public class PlayerAimAndShootController : MonoBehaviour
 
     private void HandleShoot(bool aimingNow)
     {
-        // Si tu arma es automática y tienes attackHeld en tu InputManager, aquí es donde se cambiaría.
-        // Por ahora mantenemos attackPressed
         if (!input.attackPressed)
             return;
 
@@ -497,17 +513,16 @@ public class PlayerAimAndShootController : MonoBehaviour
             Debug.DrawRay(origin, direction * Mathf.Max(1f, activeHitDistance), Color.yellow, rayDrawDuration);
         }
 
-        // Punto final para tracer: impacto real o rango máximo
         Vector3 hitPoint = origin + direction * activeHitDistance;
 
         if (Physics.Raycast(origin, direction, out RaycastHit hit, activeHitDistance, activeMask))
         {
             hitPoint = hit.point;
         }
+
         SpawnTracer(origin, hitPoint);
         SpawnMuzzleFlashAndHeadon(direction);
 
-        //Instaciar el proyectil
         GameObject bulletObj = Instantiate(activeBulletPrefab, origin, Quaternion.LookRotation(direction, Vector3.up));
 
         BulletProjectile bullet = bulletObj.GetComponent<BulletProjectile>();
@@ -554,6 +569,7 @@ public class PlayerAimAndShootController : MonoBehaviour
             tracer.transform.position = Vector3.Lerp(start, end, t);
             yield return null;
         }
+
         tracer.transform.position = end;
         Destroy(tracer.gameObject, tracer.time);
     }
@@ -567,17 +583,13 @@ public class PlayerAimAndShootController : MonoBehaviour
         if (mp == null)
             return;
 
-        // Instanciamos el prefab raíz del muzzle flash
         ParticleSystem rootFx = Instantiate(muzzleFlashPrefab, mp.position, Quaternion.LookRotation(shotDirection, Vector3.up));
-
         rootFx.Play(true);
 
-        // Buscar el child "FlashHeadon" dentro de la instancia y orientarlo a cámara
         if (mainCamera != null && !string.IsNullOrWhiteSpace(flashHeadonChildName))
         {
             Transform headon = rootFx.transform.Find(flashHeadonChildName);
 
-            // Fallback: si por jerarquía no está directo, buscamos por nombre en descendientes
             if (headon == null)
             {
                 headon = FindChildByName(rootFx.transform, flashHeadonChildName);
@@ -589,6 +601,7 @@ public class PlayerAimAndShootController : MonoBehaviour
                 headon.rotation = Quaternion.LookRotation(toCam, Vector3.up);
             }
         }
+
         Destroy(rootFx.gameObject, muzzleLifeTime);
     }
 
