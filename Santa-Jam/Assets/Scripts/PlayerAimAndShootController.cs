@@ -1,3 +1,4 @@
+using System.Collections;
 using Unity.Cinemachine;
 using UnityEngine;
 using UnityEngine.Rendering;
@@ -57,16 +58,6 @@ public class PlayerAimAndShootController : MonoBehaviour
     [Header("Aim Assist - Toggle")]
     [SerializeField] private bool aimAssistEnabled = true;
 
-    //[Header("Aim Assist - Settings")]
-    //private string enemyTag = "Enemy";
-    //[SerializeField] private float aimAssistViewportRadius = 0.06f;
-    //[SerializeField] private float aimAssistMaxDistance = 50f;
-    //[SerializeField] private float aimAssistGain = 900f;
-    //[SerializeField] private float aimAssistMaxYawSpeed = 180f;
-    //[SerializeField] private float aimAssistMaxPitchSpeed = 180f;
-    //[SerializeField] private float aimAssistMinDot = 0.75f;
-    //[SerializeField] private bool useReticleAsAimCenter = true;
-
     [Header("Look")]
     [SerializeField] private float mouseSensitivity = 2f;
     [SerializeField] private float stickSensitivity = 180f;
@@ -87,7 +78,18 @@ public class PlayerAimAndShootController : MonoBehaviour
     [SerializeField] private Vector2 hipFireAngleOffset = new Vector2(18f, -2f);
     [SerializeField] private Vector2 aimAngleOffset = new Vector2(15f, -2f);
 
-    [Header("Impact (fallback)")]
+    [Header("Shoot - Tracer")]
+    [SerializeField] private TrailRenderer bulletTracerPrefab;
+    [SerializeField] private float tracerSpeed = 250f;
+
+    [Header("Shoot - Muzzle Flash (Particle Pack)")]
+    [SerializeField] private ParticleSystem muzzleFlashPrefab;
+    // Nombre del child dentro del prefab (según tu jerarquía: "FlashHeadon")
+    [SerializeField] private string flashHeadonChildName = "FlashHeadon";
+    [SerializeField] private Transform muzzlePoint; // si es null, usa arma, en este caso sería la pistola
+    [SerializeField] private float muzzleLifeTime = 2f;
+
+    [Header("Impact")]
     [SerializeField] private LayerMask environmentMask; // Layer "Enviorement"
     [SerializeField] private GameObject bulletHoleDecalPrefab;
     [SerializeField] private float decalOffset = 0.01f;
@@ -99,13 +101,13 @@ public class PlayerAimAndShootController : MonoBehaviour
 
     [Header("Reload")]
     [SerializeField] private bool autoReloadWhenEmpty = true;
-    //[SerializeField] private KeyCode reloadKey = KeyCode.R; // fallback simple (si ya tienes Input Action de reload, puedes llamar a weaponRuntime.TryStartReload() desde tu InputManager)
+    //[SerializeField] private KeyCode reloadKey = KeyCode.R; 
 
     [Header("Debug")]
     [SerializeField] private bool drawShootRay = true;
     [SerializeField] private float rayDrawDuration = 0.10f;
 
-    [Header("Weapon Runtime (recomendado)")]
+    [Header("Weapon Runtime")]
     [SerializeField] private WeaponRuntime weaponRuntime;
 
     private InputManager input;
@@ -447,8 +449,8 @@ public class PlayerAimAndShootController : MonoBehaviour
 
     private void HandleShoot(bool aimingNow)
     {
-        // Si tu arma es automática y tienes attackHeld en tu InputManager, aquí es donde lo cambiarías.
-        // Por ahora mantenemos attackPressed para no romper tu estructura.
+        // Si tu arma es automática y tienes attackHeld en tu InputManager, aquí es donde se cambiaría.
+        // Por ahora mantenemos attackPressed
         if (!input.attackPressed)
             return;
 
@@ -495,25 +497,24 @@ public class PlayerAimAndShootController : MonoBehaviour
             Debug.DrawRay(origin, direction * Mathf.Max(1f, activeHitDistance), Color.yellow, rayDrawDuration);
         }
 
+        // Punto final para tracer: impacto real o rango máximo
+        Vector3 hitPoint = origin + direction * activeHitDistance;
+
+        if (Physics.Raycast(origin, direction, out RaycastHit hit, activeHitDistance, activeMask))
+        {
+            hitPoint = hit.point;
+        }
+        SpawnTracer(origin, hitPoint);
+        SpawnMuzzleFlashAndHeadon(direction);
+
+        //Instaciar el proyectil
         GameObject bulletObj = Instantiate(activeBulletPrefab, origin, Quaternion.LookRotation(direction, Vector3.up));
 
         BulletProjectile bullet = bulletObj.GetComponent<BulletProjectile>();
         if (bullet != null)
         {
-            bullet.Init(
-                direction,
-                activeSpeed,
-                activeHitDistance,
-                activeMask,
-                bulletHoleDecalPrefab,
-                impactParticlesPrefab,
-                decalOffset,
-                decalScaleRange,
-                decalLifeTime,
-                particlesLifeTime,
-                drawShootRay,
-                rayDrawDuration
-            );
+            bullet.Init(direction, activeSpeed, activeHitDistance, activeMask, bulletHoleDecalPrefab, impactParticlesPrefab,
+                decalOffset, decalScaleRange, decalLifeTime, particlesLifeTime, drawShootRay, rayDrawDuration);
 
             Destroy(bulletObj, Mathf.Max(0.1f, bulletLifeTime));
             return;
@@ -526,6 +527,86 @@ public class PlayerAimAndShootController : MonoBehaviour
         }
 
         Destroy(bulletObj, Mathf.Max(0.1f, bulletLifeTime));
+    }
+
+    private void SpawnTracer(Vector3 start, Vector3 end)
+    {
+        if (bulletTracerPrefab == null)
+            return;
+
+        TrailRenderer tracer = Instantiate(bulletTracerPrefab, start, Quaternion.identity);
+        StartCoroutine(AnimateTracer(tracer, start, end));
+    }
+
+    private IEnumerator AnimateTracer(TrailRenderer tracer, Vector3 start, Vector3 end)
+    {
+        float distance = Vector3.Distance(start, end);
+        float travelTime = distance / tracerSpeed;
+
+        float t = 0f;
+
+        tracer.transform.position = start;
+        tracer.Clear();
+
+        while (t < 1f)
+        {
+            t += Time.deltaTime / travelTime;
+            tracer.transform.position = Vector3.Lerp(start, end, t);
+            yield return null;
+        }
+        tracer.transform.position = end;
+        Destroy(tracer.gameObject, tracer.time);
+    }
+
+    private void SpawnMuzzleFlashAndHeadon(Vector3 shotDirection)
+    {
+        if (muzzleFlashPrefab == null)
+            return;
+
+        Transform mp = (muzzlePoint != null) ? muzzlePoint : arma;
+        if (mp == null)
+            return;
+
+        // Instanciamos el prefab raíz del muzzle flash
+        ParticleSystem rootFx = Instantiate(muzzleFlashPrefab, mp.position, Quaternion.LookRotation(shotDirection, Vector3.up));
+
+        rootFx.Play(true);
+
+        // Buscar el child "FlashHeadon" dentro de la instancia y orientarlo a cámara
+        if (mainCamera != null && !string.IsNullOrWhiteSpace(flashHeadonChildName))
+        {
+            Transform headon = rootFx.transform.Find(flashHeadonChildName);
+
+            // Fallback: si por jerarquía no está directo, buscamos por nombre en descendientes
+            if (headon == null)
+            {
+                headon = FindChildByName(rootFx.transform, flashHeadonChildName);
+            }
+
+            if (headon != null)
+            {
+                Vector3 toCam = (mainCamera.transform.position - headon.position).normalized;
+                headon.rotation = Quaternion.LookRotation(toCam, Vector3.up);
+            }
+        }
+        Destroy(rootFx.gameObject, muzzleLifeTime);
+    }
+
+    private Transform FindChildByName(Transform root, string childName)
+    {
+        if (root == null) return null;
+
+        for (int i = 0; i < root.childCount; i++)
+        {
+            Transform c = root.GetChild(i);
+            if (c.name == childName)
+                return c;
+
+            Transform deeper = FindChildByName(c, childName);
+            if (deeper != null)
+                return deeper;
+        }
+        return null;
     }
 
     #endregion

@@ -2345,6 +2345,37 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &653647257
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 653647258}
+  m_Layer: 0
+  m_Name: muzzle position
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &653647258
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 653647257}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0.284, y: 0, z: 0.509}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 989332739}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &655905654
 GameObject:
   m_ObjectHideFlags: 0
@@ -2966,6 +2997,7 @@ Transform:
   m_Children:
   - {fileID: 349598549}
   - {fileID: 2011943231}
+  - {fileID: 653647258}
   m_Father: {fileID: 1177468191}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &989332740
@@ -3806,6 +3838,12 @@ MonoBehaviour:
   bulletLifeTime: 3
   hipFireAngleOffset: {x: 16, y: -1.4}
   aimAngleOffset: {x: 2.4, y: -0.4}
+  bulletTracerPrefab: {fileID: 3133749663469216702, guid: b3aa8ca7657ce40498f610e622a33bad, type: 3}
+  tracerSpeed: 250
+  muzzleFlashPrefab: {fileID: 198234346748616026, guid: ad2ab49d0a2a17148bd51c93d977bdbc, type: 3}
+  flashHeadonChildName: FlashHeadon
+  muzzlePoint: {fileID: 653647258}
+  muzzleLifeTime: 0.2
   environmentMask:
     serializedVersion: 2
     m_Bits: 200

@@ -18,29 +18,22 @@ public class WeaponRuntime : MonoBehaviour
 
     private float nextFireTime;
 
-    // --------------------------------------------------------------------
+    // 
     // Compatibilidad con tu código existente (GameManager / SaveData)
-    // --------------------------------------------------------------------
 
-    /// <summary>
     /// Alias retrocompatible para tu GameManager (Data.currentReserve = weapon.currentReserve).
-    /// </summary>
     public int currentReserve
     {
         get => currentReserveAmmo;
         set => currentReserveAmmo = Mathf.Max(0, value);
     }
 
-    /// <summary>
     /// Retrocompatible: tu GameManager llama weapon.SetAmmo(mag, reserve).
-    /// </summary>
     public void SetAmmo(int magazineBullets, int reserveAmmo)
     {
         currentMagazine = Mathf.Max(0, magazineBullets);
         currentReserveAmmo = Mathf.Max(0, reserveAmmo);
     }
-
-    // --------------------------------------------------------------------
 
     private void Awake()
     {
@@ -71,9 +64,7 @@ public class WeaponRuntime : MonoBehaviour
         return true;
     }
 
-    /// <summary>
     /// Consume 1 bala del cargador y aplica fire rate.
-    /// </summary>
     public bool TryShoot()
     {
         if (!CanShoot())

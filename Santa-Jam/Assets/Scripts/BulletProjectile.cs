@@ -1,11 +1,10 @@
 using UnityEngine;
 
-/// <summary>
 /// Proyectil simple:
-/// - Se mueve con Rigidbody (si existe) o con Translate.
-/// - Detecta impacto con Raycast corto (para evitar atravesar colliders).
-/// - Al impactar: spawnea decal + partículas y se destruye.
-/// </summary>
+/// Se mueve con Rigidbody (si existe) o con Translate.
+/// Detecta impacto con Raycast corto (para evitar atravesar colliders).
+/// Al impactar: spawnea decal + partículas y se destruye.
+
 public class BulletProjectile : MonoBehaviour
 {
     private Vector3 direction;
@@ -34,20 +33,9 @@ public class BulletProjectile : MonoBehaviour
         rb = GetComponent<Rigidbody>();
     }
 
-    public void Init(
-        Vector3 dir,
-        float bulletSpeed,
-        float hitDistance,
-        LayerMask envMask,
-        GameObject bulletHoleDecalPrefab,
-        ParticleSystem particlesPrefab,
-        float surfaceOffset,
-        Vector2 scaleRange,
-        float decalTTL,
-        float particlesTTL,
-        bool debugDraw,
-        float debugDrawDuration
-    )
+    public void Init(Vector3 dir, float bulletSpeed, float hitDistance, LayerMask envMask, GameObject bulletHoleDecalPrefab,
+        ParticleSystem particlesPrefab, float surfaceOffset, Vector2 scaleRange, float decalTTL, float particlesTTL,
+        bool debugDraw, float debugDrawDuration)
     {
         direction = dir.normalized;
         speed = Mathf.Max(0.01f, bulletSpeed);
