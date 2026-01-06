@@ -18592,7 +18592,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::PlayerHealthController
   maxHealth: 100
   healthRuntime: {fileID: 1083827495}
-  armourRuntime: {fileID: 1280319916}
   secondsWithoutDamageToRegen: 8
   regenPerSecond: 12
   globalVolume: {fileID: 832575518}
@@ -23911,7 +23910,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &1280319915
 Transform:
   m_ObjectHideFlags: 0

@@ -11,9 +11,11 @@ public class PlayerHealthController : MonoBehaviour
     [Tooltip("Si ya tienes HealthRuntime en el player o hijos, este controlador lo usará automáticamente.")]
     [SerializeField] private HealthRuntime healthRuntime;
 
+    /*
     [Header("Armour (optional)")]
     [Tooltip("Si existe ArmourRuntime en el player o hijos, el daño se reducirá usando la armadura.")]
     [SerializeField] private ArmourRuntime armourRuntime;
+    */
 
     [Header("Regen")]
     [SerializeField] private float secondsWithoutDamageToRegen = 8f;
@@ -63,7 +65,7 @@ public class PlayerHealthController : MonoBehaviour
         // Resolve runtimes from player hierarchy
         healthRuntime = GetComponentInChildren<HealthRuntime>();
 
-        armourRuntime = GetComponentInChildren<ArmourRuntime>();
+        //armourRuntime = GetComponentInChildren<ArmourRuntime>();
 
         // Init health if no runtime exists
         if (healthRuntime == null)
@@ -108,6 +110,7 @@ public class PlayerHealthController : MonoBehaviour
 
         _lastDamageTime = Time.time;
 
+        /*
         // Armour reduces damage (if present)
         if (armourRuntime != null)
         {
@@ -118,6 +121,7 @@ public class PlayerHealthController : MonoBehaviour
                 return;
             }
         }
+        */
 
         if (healthRuntime != null)
         {
