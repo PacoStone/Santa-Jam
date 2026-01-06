@@ -18002,6 +18002,52 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: -1820, y: -980}
   m_Pivot: {x: 0.5, y: 0.5}
+--- !u!1 &1083827493
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1083827494}
+  - component: {fileID: 1083827495}
+  m_Layer: 0
+  m_Name: vida
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1083827494
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1083827493}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1177468191}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1083827495
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1083827493}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3fff8848edf3fe74399b0340481f4c4a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::HealthRuntime
+  maxHealth: 100
+  currentHealth: 100
 --- !u!1 &1085119687
 GameObject:
   m_ObjectHideFlags: 0
@@ -18149,13 +18195,13 @@ GameObject:
   - component: {fileID: 1177468191}
   - component: {fileID: 1177468190}
   - component: {fileID: 1177468189}
-  - component: {fileID: 1177468188}
   - component: {fileID: 1177468195}
   - component: {fileID: 1177468192}
   - component: {fileID: 1177468194}
   - component: {fileID: 1177468198}
   - component: {fileID: 1177468196}
   - component: {fileID: 1177468200}
+  - component: {fileID: 1177468201}
   - component: {fileID: 1177468199}
   m_Layer: 0
   m_Name: Jugador
@@ -18164,29 +18210,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!136 &1177468188
-CapsuleCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1177468186}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 0
-  m_ProvidesContacts: 0
-  m_Enabled: 0
-  serializedVersion: 2
-  m_Radius: 0.5
-  m_Height: 2
-  m_Direction: 1
-  m_Center: {x: 0, y: 0, z: 0}
 --- !u!23 &1177468189
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -18257,6 +18280,7 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 989332739}
+  - {fileID: 1083827494}
   - {fileID: 1280319915}
   - {fileID: 290128193}
   m_Father: {fileID: 0}
@@ -18554,6 +18578,28 @@ MonoBehaviour:
   vignetteSprint: 0.2
   vignetteSmooth: 10
   blurSmooth: 12
+--- !u!114 &1177468201
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1177468186}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bd9b81bcedcbe844fbd251e46607409b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerHealthController
+  maxHealth: 100
+  healthRuntime: {fileID: 1083827495}
+  armourRuntime: {fileID: 1280319916}
+  secondsWithoutDamageToRegen: 8
+  regenPerSecond: 12
+  globalVolume: {fileID: 832575518}
+  saturationAtZeroHealth: -100
+  vignetteSmoothnessAtZeroHealth: 1
+  postLerpSpeed: 8
+  disableOnDeath: []
 --- !u!1 &1261489942
 GameObject:
   m_ObjectHideFlags: 0
@@ -34596,7 +34642,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &1721203168
 Transform:
   m_ObjectHideFlags: 0
