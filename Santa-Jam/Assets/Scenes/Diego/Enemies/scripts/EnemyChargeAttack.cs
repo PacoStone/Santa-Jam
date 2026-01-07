@@ -20,10 +20,14 @@ public class EnemyChargeAttack : MonoBehaviour
     [Header("Aturdimiento")]
     public float stunTime = 2f; // Tiempo que queda aturdido tras chocar
 
+    [Header("Cooldown entre cargas")]
+    public float chargeCooldown = 3f; // Tiempo antes de poder volver a cargar
+
     private NavMeshAgent agent;
 
     private bool isCharging = false;
     private bool isStunned = false;
+    private bool canCharge = true;   
 
     private Vector3 chargeDirection;
     private float chargeTimer;
@@ -57,7 +61,7 @@ public class EnemyChargeAttack : MonoBehaviour
         }
 
         // --- INICIAR CARGA ---
-        if (dist <= chargeTriggerDistance && !isCharging)
+        if (canCharge && dist <= chargeTriggerDistance && !isCharging)
         {
             StartCharge();
         }
@@ -66,6 +70,7 @@ public class EnemyChargeAttack : MonoBehaviour
     void StartCharge()
     {
         isCharging = true;
+        canCharge = false; // ⬅️ bloquea nuevas cargas hasta que pase el cooldown
 
         // Guardamos la dirección INICIAL hacia el jugador
         chargeDirection = (player.position - transform.position).normalized;
@@ -97,6 +102,9 @@ public class EnemyChargeAttack : MonoBehaviour
 
         agent.updateRotation = true;
         agent.isStopped = false;
+
+        //empieza el cooldown para poder volver a cargar
+        StartCoroutine(ChargeCooldown());
     }
 
     // COLISIÓN Y DAÑO
@@ -109,6 +117,9 @@ public class EnemyChargeAttack : MonoBehaviour
             PlayerHealthController health = col.transform.GetComponent<PlayerHealthController>();
             if (health != null)
                 health.TakeDamage(damage);
+
+            // Tras golpear al jugador también entra en aturdimiento
+            StartCoroutine(Stun());
             return;
         }
 
@@ -133,5 +144,12 @@ public class EnemyChargeAttack : MonoBehaviour
         isStunned = false;
         agent.isStopped = false;
         agent.updateRotation = true;
+    }
+
+    // COOLDOWN ENTRE CARGAS
+    System.Collections.IEnumerator ChargeCooldown()
+    {
+        yield return new WaitForSeconds(chargeCooldown);
+        canCharge = true;
     }
 }
