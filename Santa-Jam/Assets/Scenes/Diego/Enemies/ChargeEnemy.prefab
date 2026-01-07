@@ -1,0 +1,86 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1001 &1285056105815289310
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 2490312864265963313, guid: 3d8643653531b7d46a949ed4f8618e4c, type: 3}
+      propertyPath: m_Name
+      value: ChargeEnemy
+      objectReference: {fileID: 0}
+    - target: {fileID: 8067297035077316736, guid: 3d8643653531b7d46a949ed4f8618e4c, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8067297035077316736, guid: 3d8643653531b7d46a949ed4f8618e4c, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8067297035077316736, guid: 3d8643653531b7d46a949ed4f8618e4c, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8067297035077316736, guid: 3d8643653531b7d46a949ed4f8618e4c, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8067297035077316736, guid: 3d8643653531b7d46a949ed4f8618e4c, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8067297035077316736, guid: 3d8643653531b7d46a949ed4f8618e4c, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8067297035077316736, guid: 3d8643653531b7d46a949ed4f8618e4c, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8067297035077316736, guid: 3d8643653531b7d46a949ed4f8618e4c, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8067297035077316736, guid: 3d8643653531b7d46a949ed4f8618e4c, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8067297035077316736, guid: 3d8643653531b7d46a949ed4f8618e4c, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    m_RemovedComponents:
+    - {fileID: 6171036765065287760, guid: 3d8643653531b7d46a949ed4f8618e4c, type: 3}
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 2490312864265963313, guid: 3d8643653531b7d46a949ed4f8618e4c, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 2445806290368590959}
+  m_SourcePrefab: {fileID: 100100000, guid: 3d8643653531b7d46a949ed4f8618e4c, type: 3}
+--- !u!1 &3700324895565654767 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 2490312864265963313, guid: 3d8643653531b7d46a949ed4f8618e4c, type: 3}
+  m_PrefabInstance: {fileID: 1285056105815289310}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &2445806290368590959
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3700324895565654767}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b809c1213d2a87d4ab016729ce4e2ee1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::EnemyChargeAttack
+  player: {fileID: 0}
+  chaseDistance: 15
+  chargeTriggerDistance: 10
+  chargeSpeed: 12
+  chargeDuration: 1.5
+  turnResistance: 0.1
