@@ -11,11 +11,14 @@ public class PlayerAimAndShootController : MonoBehaviour
 {
     [Header("References")]
     [SerializeField] private Transform cameraTransform; // Legacy / fallback (si no usas cameraTarget)
-    [SerializeField] private Transform cameraTarget;     // Pivot que Cinemachine sigue 
+    [SerializeField] private Transform cameraTarget;     // Pivot que Cinemachine sigue
     [SerializeField] private Camera mainCamera;
 
     [Header("Cinemachine")]
     [SerializeField] private CinemachineCamera vcam;
+
+    [Header("Anchors + Side Switch")]
+    [SerializeField] private PlayerSideSwitcher sideSwitcher;
 
     [Header("UI - Reticle (Screen Space Overlay)")]
     [SerializeField] private RectTransform hipFireReticle;
@@ -26,7 +29,7 @@ public class PlayerAimAndShootController : MonoBehaviour
     [SerializeField] private float hipFireReticleAlphaAiming = 1f;
 
     [Header("UI - Reticle Behaviour")]
-    [SerializeField] private bool hideReticleWhileNotAiming = true; // ON => en hipfire se oculta; en aim siempre aparece
+    [SerializeField] private bool hideReticleWhileNotAiming = true;
 
     [Header("Reticle Loop (cuando hay lock)")]
     [SerializeField] private bool loopReticleWhileLocked = true;
@@ -65,10 +68,11 @@ public class PlayerAimAndShootController : MonoBehaviour
     [SerializeField] private float stickLookSmoothing = 0.04f;
     [SerializeField] private float minPitch = -80f;
     [SerializeField] private float maxPitch = 80f;
-    [SerializeField] private bool invertY = false; // NUEVO: invertir eje Y si quieres
+    [SerializeField] private bool invertY = false;
 
-    [Header("Shoot - Weapon Origin")]
-    [SerializeField] private Transform arma; // EmptyObject llamado "arma"
+    [Header("Shoot - Weapon Origin (Fallback)")]
+    [Tooltip("Fallback si NO hay SideSwitcher o NO devuelve muzzle. Con anchors+SideSwitcher, no debería hacer falta.")]
+    [SerializeField] private Transform arma;
     [SerializeField] private float shootOriginForwardOffset = 0.03f;
 
     [Header("Shoot - Projectile (fallback)")]
@@ -87,7 +91,6 @@ public class PlayerAimAndShootController : MonoBehaviour
     [Header("Shoot - Muzzle Flash (Particle Pack)")]
     [SerializeField] private ParticleSystem muzzleFlashPrefab;
     [SerializeField] private string flashHeadonChildName = "FlashHeadon";
-    [SerializeField] private Transform muzzlePoint;
     [SerializeField] private float muzzleLifeTime = 2f;
 
     [Header("Impact")]
@@ -133,6 +136,10 @@ public class PlayerAimAndShootController : MonoBehaviour
         input = GetComponent<InputManager>();
         movement = GetComponent<PlayerMovementController>();
 
+        mainCamera = Camera.main;
+
+        sideSwitcher = GetComponent<PlayerSideSwitcher>();
+
         SetupCinemachine();
         SetupReticle();
         SetupVignette();
@@ -173,16 +180,9 @@ public class PlayerAimAndShootController : MonoBehaviour
         baseShoulderY = thirdPersonFollow.ShoulderOffset.y;
         sprintCameraDistance = baseCameraDistance + sprintDistanceDelta;
 
-        // Si no asignaste cameraTarget, sigue funcionando con cameraTransform 
-        // Recomendación: crea un empty "CameraTarget" como hijo del player y asígnalo aquí.
         if (cameraTarget == null && cameraTransform != null)
         {
             cameraTarget = cameraTransform;
-        }
-
-        if (mainCamera == null)
-        {
-            mainCamera = Camera.main;
         }
     }
 
@@ -203,10 +203,7 @@ public class PlayerAimAndShootController : MonoBehaviour
 
     private void SetupVignette()
     {
-        if (globalVolume == null)
-            return;
-
-        if (globalVolume.profile == null)
+        if (globalVolume == null || globalVolume.profile == null)
             return;
 
         globalVolume.profile.TryGet(out vignette);
@@ -279,11 +276,8 @@ public class PlayerAimAndShootController : MonoBehaviour
             pitchDelta = mouse.y;
         }
 
-        // Invert Y opcional
         if (!invertY)
-        {
             pitchDelta = -pitchDelta;
-        }
 
         cameraPitch += pitchDelta;
 
@@ -298,13 +292,11 @@ public class PlayerAimAndShootController : MonoBehaviour
 
         cameraPitch = Mathf.Clamp(cameraPitch, minPitch, maxPitch);
 
-        // PITCH: aquí está la clave -> lo aplicamos al cameraTarget (pivot que Cinemachine debería seguir)
         if (cameraTarget != null)
         {
             cameraTarget.localRotation = Quaternion.Euler(cameraPitch, 0f, 0f);
         }
 
-        // YAW: rota el player (mantienes tu esquema)
         transform.Rotate(Vector3.up * yawDelta, Space.World);
     }
 
@@ -313,7 +305,6 @@ public class PlayerAimAndShootController : MonoBehaviour
         if (mainCamera == null)
             return;
 
-        // Mantengo lo mínimo: aquí ya tienes tu lógica de assist, no la toco más de lo necesario.
         currentAimTarget = null;
     }
 
@@ -379,9 +370,7 @@ public class PlayerAimAndShootController : MonoBehaviour
         }
 
         if (!shouldBeActive)
-        {
             return;
-        }
 
         if (!aimingNow)
         {
@@ -470,8 +459,13 @@ public class PlayerAimAndShootController : MonoBehaviour
         if (!input.attackPressed)
             return;
 
-        if (arma == null)
+        // 1) Muzzle activo (anchors)
+        Transform activeMuzzle = GetActiveMuzzle();
+        if (activeMuzzle == null)
+        {
+            Debug.LogWarning("Shoot: No hay muzzle activo (SideSwitcher) y no hay fallback 'arma' asignado.");
             return;
+        }
 
         // AMMO CHECK
         if (weaponRuntime != null)
@@ -499,12 +493,11 @@ public class PlayerAimAndShootController : MonoBehaviour
         float activeHitDistance = (data != null && data.HitDistance > 0f) ? data.HitDistance : 80f;
         LayerMask activeMask = (data != null) ? data.EnvironmentMask : environmentMask;
 
-        Vector3 origin = arma.position;
+        Vector3 origin = activeMuzzle.position;
 
-        Vector2 activeOffset = aimingNow ? aimAngleOffset : hipFireAngleOffset;
-        Quaternion angleOffset = Quaternion.Euler(activeOffset.y, activeOffset.x, 0f);
-
-        Vector3 direction = (angleOffset * arma.forward).normalized;
+        Vector3 direction = GetCameraCenterDirectionWithOffset(aimingNow);
+        if (direction.sqrMagnitude < 0.0001f)
+            return;
 
         origin += direction * shootOriginForwardOffset;
 
@@ -514,14 +507,18 @@ public class PlayerAimAndShootController : MonoBehaviour
         }
 
         Vector3 hitPoint = origin + direction * activeHitDistance;
+        bool hasHit = Physics.Raycast(origin, direction, out RaycastHit hit, activeHitDistance, activeMask);
 
-        if (Physics.Raycast(origin, direction, out RaycastHit hit, activeHitDistance, activeMask))
+        if (hasHit)
         {
             hitPoint = hit.point;
+
+            // Fallback visual garantizado (aunque el bullet no tenga BulletProjectile)
+            SpawnImpact(hit);
         }
 
         SpawnTracer(origin, hitPoint);
-        SpawnMuzzleFlashAndHeadon(direction);
+        SpawnMuzzleFlashAndHeadon(direction, activeMuzzle);
 
         GameObject bulletObj = Instantiate(activeBulletPrefab, origin, Quaternion.LookRotation(direction, Vector3.up));
 
@@ -542,6 +539,44 @@ public class PlayerAimAndShootController : MonoBehaviour
         }
 
         Destroy(bulletObj, Mathf.Max(0.1f, bulletLifeTime));
+    }
+
+    private Transform GetActiveMuzzle()
+    {
+        if (sideSwitcher != null)
+        {
+            Transform m = sideSwitcher.GetActiveMuzzle();
+            if (m != null)
+                return m;
+        }
+
+        // Fallback (por si aún no tienes SideSwitcher en alguna escena)
+        return arma;
+    }
+
+    private Vector3 GetCameraCenterDirectionWithOffset(bool aimingNow)
+    {
+        // Dirección base desde el centro de cámara (lo que “ves”)
+        Vector3 baseDir;
+
+        if (mainCamera != null)
+        {
+            Ray ray = mainCamera.ViewportPointToRay(new Vector3(0.5f, 0.5f, 0f));
+            baseDir = ray.direction.normalized;
+        }
+        else if (arma != null)
+        {
+            baseDir = arma.forward.normalized;
+        }
+        else
+        {
+            return Vector3.zero;
+        }
+
+        Vector2 activeOffset = aimingNow ? aimAngleOffset : hipFireAngleOffset;
+        Quaternion angleOffset = Quaternion.Euler(activeOffset.y, activeOffset.x, 0f);
+
+        return (angleOffset * baseDir).normalized;
     }
 
     private void SpawnTracer(Vector3 start, Vector3 end)
@@ -574,22 +609,17 @@ public class PlayerAimAndShootController : MonoBehaviour
         Destroy(tracer.gameObject, tracer.time);
     }
 
-    private void SpawnMuzzleFlashAndHeadon(Vector3 shotDirection)
+    private void SpawnMuzzleFlashAndHeadon(Vector3 shotDirection, Transform spawnAt)
     {
-        if (muzzleFlashPrefab == null)
+        if (muzzleFlashPrefab == null || spawnAt == null)
             return;
 
-        Transform mp = (muzzlePoint != null) ? muzzlePoint : arma;
-        if (mp == null)
-            return;
-
-        ParticleSystem rootFx = Instantiate(muzzleFlashPrefab, mp.position, Quaternion.LookRotation(shotDirection, Vector3.up));
+        ParticleSystem rootFx = Instantiate(muzzleFlashPrefab, spawnAt.position, Quaternion.LookRotation(shotDirection, Vector3.up));
         rootFx.Play(true);
 
         if (mainCamera != null && !string.IsNullOrWhiteSpace(flashHeadonChildName))
         {
             Transform headon = rootFx.transform.Find(flashHeadonChildName);
-
             if (headon == null)
             {
                 headon = FindChildByName(rootFx.transform, flashHeadonChildName);
@@ -603,6 +633,27 @@ public class PlayerAimAndShootController : MonoBehaviour
         }
 
         Destroy(rootFx.gameObject, muzzleLifeTime);
+    }
+
+    private void SpawnImpact(RaycastHit hit)
+    {
+        if (bulletHoleDecalPrefab != null)
+        {
+            Quaternion rot = Quaternion.LookRotation(hit.normal);
+            GameObject decal = Instantiate(bulletHoleDecalPrefab, hit.point + hit.normal * decalOffset, rot);
+
+            float s = Random.Range(decalScaleRange.x, decalScaleRange.y);
+            decal.transform.localScale = Vector3.one * s;
+
+            Destroy(decal, decalLifeTime);
+        }
+
+        if (impactParticlesPrefab != null)
+        {
+            ParticleSystem ps = Instantiate(impactParticlesPrefab, hit.point, Quaternion.LookRotation(hit.normal));
+            ps.Play(true);
+            Destroy(ps.gameObject, particlesLifeTime);
+        }
     }
 
     private Transform FindChildByName(Transform root, string childName)
