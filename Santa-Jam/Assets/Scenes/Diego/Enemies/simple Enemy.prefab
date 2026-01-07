@@ -16,7 +16,7 @@ GameObject:
   - component: {fileID: 4735109460964066226}
   m_Layer: 0
   m_Name: simple Enemy
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -126,6 +126,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemyFollowPlayer
   player: {fileID: 0}
+  stopDistance: 2
+  attackRange: 3
+  attackDelay: 0.5
+  damage: 10
 --- !u!195 &4735109460964066226
 NavMeshAgent:
   m_ObjectHideFlags: 0
