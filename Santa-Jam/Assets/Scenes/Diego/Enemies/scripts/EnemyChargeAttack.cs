@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.AI;
 
 public class EnemyChargeAttack : MonoBehaviour
@@ -12,10 +12,18 @@ public class EnemyChargeAttack : MonoBehaviour
     [Header("Carga")]
     public float chargeSpeed = 12f;
     public float chargeDuration = 1.5f;
-    public float turnResistance = 0.1f; // 0 = no gira nada, 1 = gira normal
+    public float turnResistance = 0.1f; // 0 = no gira nada
+
+    [Header("Daño")]
+    public int damage = 20;
+
+    [Header("Aturdimiento")]
+    public float stunTime = 2f; // Tiempo que queda aturdido tras chocar
 
     private NavMeshAgent agent;
+
     private bool isCharging = false;
+    private bool isStunned = false;
 
     private Vector3 chargeDirection;
     private float chargeTimer;
@@ -29,6 +37,10 @@ public class EnemyChargeAttack : MonoBehaviour
     {
         if (player == null) return;
 
+        // Si está aturdido, no hace nada
+        if (isStunned)
+            return;
+
         float dist = Vector3.Distance(transform.position, player.position);
 
         if (isCharging)
@@ -37,7 +49,7 @@ public class EnemyChargeAttack : MonoBehaviour
             return;
         }
 
-        // --- MODO PERSECUCI�N ---
+        // --- PERSECUCIÓN NORMAL ---
         if (dist <= chaseDistance)
         {
             agent.isStopped = false;
@@ -55,24 +67,21 @@ public class EnemyChargeAttack : MonoBehaviour
     {
         isCharging = true;
 
-        // Guardamos la direcci�n INICIAL hacia el jugador
+        // Guardamos la dirección INICIAL hacia el jugador
         chargeDirection = (player.position - transform.position).normalized;
         chargeTimer = chargeDuration;
 
-        // Paramos el NavMesh
         agent.isStopped = true;
         agent.updateRotation = false;
     }
 
     void HandleCharge()
     {
-        // Reducimos el tiempo de carga
         chargeTimer -= Time.deltaTime;
 
-        // Movimiento hacia delante
         transform.position += chargeDirection * chargeSpeed * Time.deltaTime;
 
-        // Rotaci�n lenta (simula inercia)
+        // Rotación lenta (simula inercia)
         Quaternion targetRot = Quaternion.LookRotation(chargeDirection);
         transform.rotation = Quaternion.Slerp(transform.rotation, targetRot, turnResistance);
 
@@ -90,17 +99,39 @@ public class EnemyChargeAttack : MonoBehaviour
         agent.isStopped = false;
     }
 
+    // COLISIÓN Y DAÑO
     void OnCollisionEnter(Collision col)
     {
-        // si colisiona con eljugador peus no hacemos nada, o ahcemos que empuje al jugador hacia los lados ol algo //TODO
+        if (!isCharging) return;
+
         if (col.transform.GetComponent<PlayerHealthController>())
         {
+            PlayerHealthController health = col.transform.GetComponent<PlayerHealthController>();
+            if (health != null)
+                health.TakeDamage(damage);
             return;
         }
-        if (isCharging)
-        {
-            EndCharge();
-        }
+
+        // Siempre que choque durante la carga → se aturde
+        StartCoroutine(Stun());
     }
 
+    // ESTADO DE ATURDIDO
+    System.Collections.IEnumerator Stun()
+    {
+        isCharging = false;
+        isStunned = true;
+
+        agent.isStopped = true;
+
+        Debug.Log("Enemigo aturdido");
+
+        yield return new WaitForSeconds(stunTime);
+
+        Debug.Log("Enemigo recuperado");
+
+        isStunned = false;
+        agent.isStopped = false;
+        agent.updateRotation = true;
+    }
 }
