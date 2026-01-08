@@ -1,0 +1,19 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ea379040449551c41be72be9e4a9d6fa, type: 3}
+  m_Name: Plyphs_Xbox
+  m_EditorClassIdentifier: Assembly-CSharp::InputGlyphDatabase
+  entries:
+  - controlPath: LB
+    sprite: {fileID: 1921789166, guid: c1eeb76207c7ce94f91a8f16853cf2dc, type: 3}
+  - controlPath: RB
+    sprite: {fileID: 1540415202, guid: c1eeb76207c7ce94f91a8f16853cf2dc, type: 3}

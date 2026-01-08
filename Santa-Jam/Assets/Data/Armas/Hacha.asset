@@ -10,11 +10,11 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 3838fa04a48f1cf47aa5eeb63031233c, type: 3}
-  m_Name: Gun
+  m_Name: Hacha
   m_EditorClassIdentifier: Assembly-CSharp::WeaponDa
-  ItemName: Pistola
-  Icon: {fileID: 21300000, guid: b911c532e21953142a7fbffe69afa1b6, type: 3}
-  Description: Pedazo de pistola
+  ItemName: Hacha
+  Icon: {fileID: 21300000, guid: 868dadeece5cb5540977d121d9d0d572, type: 3}
+  Description: Here's... Jonny
   Category: 1
   PreviewAnchorPosition: {x: 0, y: 0}
   HandsToHold: 1
@@ -23,7 +23,7 @@ MonoBehaviour:
   MaxReserveAmmo: 90
   BulletsPerMagazine: 30
   ReloadTime: 1.6
-  HitDistance: 30
+  HitDistance: 5
   EnvironmentMask:
     serializedVersion: 2
     m_Bits: 64

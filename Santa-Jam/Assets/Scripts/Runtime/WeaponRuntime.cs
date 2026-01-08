@@ -16,23 +16,32 @@ public class WeaponRuntime : MonoBehaviour
     [Tooltip("True mientras se está recargando.")]
     public bool reloading;
 
+    // Fire-rate control
     private float nextFireTime;
 
-    // 
-    // Compatibilidad con tu código existente (GameManager / SaveData)
+    // Reload tracking
+    private Coroutine reloadCo;
+    private float reloadStartTime;
+    private float reloadDuration;
 
-    /// Alias retrocompatible para tu GameManager (Data.currentReserve = weapon.currentReserve).
+    // Retrocompatibilidad (GameManager / SaveData)
     public int currentReserve
     {
         get => currentReserveAmmo;
         set => currentReserveAmmo = Mathf.Max(0, value);
     }
 
-    /// Retrocompatible: tu GameManager llama weapon.SetAmmo(mag, reserve).
     public void SetAmmo(int magazineBullets, int reserveAmmo)
     {
         currentMagazine = Mathf.Max(0, magazineBullets);
         currentReserveAmmo = Mathf.Max(0, reserveAmmo);
+    }
+
+    public float GetReloadProgress01()
+    {
+        if (!reloading) return 0f;
+        if (reloadDuration <= 0f) return 1f;
+        return Mathf.Clamp01((Time.time - reloadStartTime) / reloadDuration);
     }
 
     private void Awake()
@@ -42,6 +51,9 @@ public class WeaponRuntime : MonoBehaviour
 
     public void Equip(WeaponDa data)
     {
+        // Si cambias de arma durante una recarga, corta la recarga.
+        CancelReload();
+
         weaponData = data;
 
         if (weaponData == null)
@@ -60,11 +72,9 @@ public class WeaponRuntime : MonoBehaviour
         if (reloading) return false;
         if (currentMagazine <= 0) return false;
         if (Time.time < nextFireTime) return false;
-
         return true;
     }
 
-    /// Consume 1 bala del cargador y aplica fire rate.
     public bool TryShoot()
     {
         if (!CanShoot())
@@ -95,19 +105,32 @@ public class WeaponRuntime : MonoBehaviour
         if (!CanReload())
             return false;
 
-        StartCoroutine(ReloadRoutine());
+        CancelReload(); // por seguridad
+        reloadCo = StartCoroutine(ReloadRoutine());
         return true;
+    }
+
+    public void CancelReload()
+    {
+        if (reloadCo != null)
+        {
+            StopCoroutine(reloadCo);
+            reloadCo = null;
+        }
+        reloading = false;
+        reloadStartTime = 0f;
+        reloadDuration = 0f;
     }
 
     private IEnumerator ReloadRoutine()
     {
         reloading = true;
 
-        float t = Mathf.Max(0f, weaponData.ReloadTime);
-        if (t > 0f)
-        {
-            yield return new WaitForSeconds(t);
-        }    
+        reloadStartTime = Time.time;
+        reloadDuration = Mathf.Max(0f, weaponData.ReloadTime);
+
+        if (reloadDuration > 0f)
+            yield return new WaitForSeconds(reloadDuration);
 
         int magSize = Mathf.Max(1, weaponData.BulletsPerMagazine);
         int missing = Mathf.Clamp(magSize - currentMagazine, 0, magSize);
@@ -118,5 +141,6 @@ public class WeaponRuntime : MonoBehaviour
         currentReserveAmmo -= toLoad;
 
         reloading = false;
+        reloadCo = null;
     }
 }

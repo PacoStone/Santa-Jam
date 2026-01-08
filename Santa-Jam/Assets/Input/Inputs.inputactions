@@ -79,18 +79,27 @@
                     "initialStateCheck": false
                 },
                 {
-                    "name": "ShowGuns",
+                    "name": "Reload",
                     "type": "Button",
-                    "id": "ef36e694-8aaa-45dd-8d48-63e49f27a3d3",
+                    "id": "7ade3c84-e46b-4182-aee1-70672fab3ba8",
                     "expectedControlType": "",
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": false
                 },
                 {
-                    "name": "Reload",
+                    "name": "ChangeGunLeft",
                     "type": "Button",
-                    "id": "7ade3c84-e46b-4182-aee1-70672fab3ba8",
+                    "id": "ef3896b5-8fc1-4082-b85e-17a957e24d27",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "ChangeGunRight",
+                    "type": "Button",
+                    "id": "322f7071-f132-4963-8c98-bb9d2b84da5a",
                     "expectedControlType": "",
                     "processors": "",
                     "interactions": "",
@@ -485,28 +494,6 @@
                 },
                 {
                     "name": "",
-                    "id": "dbddd08e-d702-4a6a-b84c-eb8c003e8a19",
-                    "path": "<Keyboard>/tab",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "",
-                    "action": "ShowGuns",
-                    "isComposite": false,
-                    "isPartOfComposite": false
-                },
-                {
-                    "name": "",
-                    "id": "bbf710c0-82ff-429d-8bd3-44f601da2b4d",
-                    "path": "<Gamepad>/buttonNorth",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "",
-                    "action": "ShowGuns",
-                    "isComposite": false,
-                    "isPartOfComposite": false
-                },
-                {
-                    "name": "",
                     "id": "f97e76cf-25e5-4479-9f32-e14596208dee",
                     "path": "<Keyboard>/r",
                     "interactions": "",
@@ -524,6 +511,50 @@
                     "processors": "",
                     "groups": "",
                     "action": "Reload",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "0314db92-ad32-4eca-9304-850ca2dc23a3",
+                    "path": "<Keyboard>/q",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "ChangeGunLeft",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "87d5c230-0901-45c3-ae33-e12a7c138335",
+                    "path": "<Gamepad>/rightShoulder",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "ChangeGunLeft",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "e0bbb2b1-3431-4e8e-b64b-7d6c32475e59",
+                    "path": "<Keyboard>/e",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "ChangeGunRight",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "b0a6dc24-3e08-4c4a-a2f9-b372aaf9f9c5",
+                    "path": "<Gamepad>/leftShoulder",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "ChangeGunRight",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

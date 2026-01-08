@@ -165,18 +165,27 @@ public partial class @Inputs: IInputActionCollection2, IDisposable
                     ""initialStateCheck"": false
                 },
                 {
-                    ""name"": ""ShowGuns"",
+                    ""name"": ""Reload"",
                     ""type"": ""Button"",
-                    ""id"": ""ef36e694-8aaa-45dd-8d48-63e49f27a3d3"",
+                    ""id"": ""7ade3c84-e46b-4182-aee1-70672fab3ba8"",
                     ""expectedControlType"": """",
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": false
                 },
                 {
-                    ""name"": ""Reload"",
+                    ""name"": ""ChangeGunLeft"",
                     ""type"": ""Button"",
-                    ""id"": ""7ade3c84-e46b-4182-aee1-70672fab3ba8"",
+                    ""id"": ""ef3896b5-8fc1-4082-b85e-17a957e24d27"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""ChangeGunRight"",
+                    ""type"": ""Button"",
+                    ""id"": ""322f7071-f132-4963-8c98-bb9d2b84da5a"",
                     ""expectedControlType"": """",
                     ""processors"": """",
                     ""interactions"": """",
@@ -571,28 +580,6 @@ public partial class @Inputs: IInputActionCollection2, IDisposable
                 },
                 {
                     ""name"": """",
-                    ""id"": ""dbddd08e-d702-4a6a-b84c-eb8c003e8a19"",
-                    ""path"": ""<Keyboard>/tab"",
-                    ""interactions"": """",
-                    ""processors"": """",
-                    ""groups"": """",
-                    ""action"": ""ShowGuns"",
-                    ""isComposite"": false,
-                    ""isPartOfComposite"": false
-                },
-                {
-                    ""name"": """",
-                    ""id"": ""bbf710c0-82ff-429d-8bd3-44f601da2b4d"",
-                    ""path"": ""<Gamepad>/buttonNorth"",
-                    ""interactions"": """",
-                    ""processors"": """",
-                    ""groups"": """",
-                    ""action"": ""ShowGuns"",
-                    ""isComposite"": false,
-                    ""isPartOfComposite"": false
-                },
-                {
-                    ""name"": """",
                     ""id"": ""f97e76cf-25e5-4479-9f32-e14596208dee"",
                     ""path"": ""<Keyboard>/r"",
                     ""interactions"": """",
@@ -610,6 +597,50 @@ public partial class @Inputs: IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""groups"": """",
                     ""action"": ""Reload"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""0314db92-ad32-4eca-9304-850ca2dc23a3"",
+                    ""path"": ""<Keyboard>/q"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""ChangeGunLeft"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""87d5c230-0901-45c3-ae33-e12a7c138335"",
+                    ""path"": ""<Gamepad>/rightShoulder"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""ChangeGunLeft"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""e0bbb2b1-3431-4e8e-b64b-7d6c32475e59"",
+                    ""path"": ""<Keyboard>/e"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""ChangeGunRight"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""b0a6dc24-3e08-4c4a-a2f9-b372aaf9f9c5"",
+                    ""path"": ""<Gamepad>/leftShoulder"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""ChangeGunRight"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 }
@@ -1157,8 +1188,9 @@ public partial class @Inputs: IInputActionCollection2, IDisposable
         m_Jugador_Jump = m_Jugador.FindAction("Jump", throwIfNotFound: true);
         m_Jugador_Attack = m_Jugador.FindAction("Attack", throwIfNotFound: true);
         m_Jugador_Aim = m_Jugador.FindAction("Aim", throwIfNotFound: true);
-        m_Jugador_ShowGuns = m_Jugador.FindAction("ShowGuns", throwIfNotFound: true);
         m_Jugador_Reload = m_Jugador.FindAction("Reload", throwIfNotFound: true);
+        m_Jugador_ChangeGunLeft = m_Jugador.FindAction("ChangeGunLeft", throwIfNotFound: true);
+        m_Jugador_ChangeGunRight = m_Jugador.FindAction("ChangeGunRight", throwIfNotFound: true);
         // UI
         m_UI = asset.FindActionMap("UI", throwIfNotFound: true);
         m_UI_GoBack = m_UI.FindAction("Go Back", throwIfNotFound: true);
@@ -1259,8 +1291,9 @@ public partial class @Inputs: IInputActionCollection2, IDisposable
     private readonly InputAction m_Jugador_Jump;
     private readonly InputAction m_Jugador_Attack;
     private readonly InputAction m_Jugador_Aim;
-    private readonly InputAction m_Jugador_ShowGuns;
     private readonly InputAction m_Jugador_Reload;
+    private readonly InputAction m_Jugador_ChangeGunLeft;
+    private readonly InputAction m_Jugador_ChangeGunRight;
     /// <summary>
     /// Provides access to input actions defined in input action map "Jugador".
     /// </summary>
@@ -1305,13 +1338,17 @@ public partial class @Inputs: IInputActionCollection2, IDisposable
         /// </summary>
         public InputAction @Aim => m_Wrapper.m_Jugador_Aim;
         /// <summary>
-        /// Provides access to the underlying input action "Jugador/ShowGuns".
-        /// </summary>
-        public InputAction @ShowGuns => m_Wrapper.m_Jugador_ShowGuns;
-        /// <summary>
         /// Provides access to the underlying input action "Jugador/Reload".
         /// </summary>
         public InputAction @Reload => m_Wrapper.m_Jugador_Reload;
+        /// <summary>
+        /// Provides access to the underlying input action "Jugador/ChangeGunLeft".
+        /// </summary>
+        public InputAction @ChangeGunLeft => m_Wrapper.m_Jugador_ChangeGunLeft;
+        /// <summary>
+        /// Provides access to the underlying input action "Jugador/ChangeGunRight".
+        /// </summary>
+        public InputAction @ChangeGunRight => m_Wrapper.m_Jugador_ChangeGunRight;
         /// <summary>
         /// Provides access to the underlying input action map instance.
         /// </summary>
@@ -1362,12 +1399,15 @@ public partial class @Inputs: IInputActionCollection2, IDisposable
             @Aim.started += instance.OnAim;
             @Aim.performed += instance.OnAim;
             @Aim.canceled += instance.OnAim;
-            @ShowGuns.started += instance.OnShowGuns;
-            @ShowGuns.performed += instance.OnShowGuns;
-            @ShowGuns.canceled += instance.OnShowGuns;
             @Reload.started += instance.OnReload;
             @Reload.performed += instance.OnReload;
             @Reload.canceled += instance.OnReload;
+            @ChangeGunLeft.started += instance.OnChangeGunLeft;
+            @ChangeGunLeft.performed += instance.OnChangeGunLeft;
+            @ChangeGunLeft.canceled += instance.OnChangeGunLeft;
+            @ChangeGunRight.started += instance.OnChangeGunRight;
+            @ChangeGunRight.performed += instance.OnChangeGunRight;
+            @ChangeGunRight.canceled += instance.OnChangeGunRight;
         }
 
         /// <summary>
@@ -1403,12 +1443,15 @@ public partial class @Inputs: IInputActionCollection2, IDisposable
             @Aim.started -= instance.OnAim;
             @Aim.performed -= instance.OnAim;
             @Aim.canceled -= instance.OnAim;
-            @ShowGuns.started -= instance.OnShowGuns;
-            @ShowGuns.performed -= instance.OnShowGuns;
-            @ShowGuns.canceled -= instance.OnShowGuns;
             @Reload.started -= instance.OnReload;
             @Reload.performed -= instance.OnReload;
             @Reload.canceled -= instance.OnReload;
+            @ChangeGunLeft.started -= instance.OnChangeGunLeft;
+            @ChangeGunLeft.performed -= instance.OnChangeGunLeft;
+            @ChangeGunLeft.canceled -= instance.OnChangeGunLeft;
+            @ChangeGunRight.started -= instance.OnChangeGunRight;
+            @ChangeGunRight.performed -= instance.OnChangeGunRight;
+            @ChangeGunRight.canceled -= instance.OnChangeGunRight;
         }
 
         /// <summary>
@@ -1690,19 +1733,26 @@ public partial class @Inputs: IInputActionCollection2, IDisposable
         /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
         void OnAim(InputAction.CallbackContext context);
         /// <summary>
-        /// Method invoked when associated input action "ShowGuns" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
-        /// </summary>
-        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
-        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
-        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
-        void OnShowGuns(InputAction.CallbackContext context);
-        /// <summary>
         /// Method invoked when associated input action "Reload" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
         /// </summary>
         /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
         /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
         /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
         void OnReload(InputAction.CallbackContext context);
+        /// <summary>
+        /// Method invoked when associated input action "ChangeGunLeft" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnChangeGunLeft(InputAction.CallbackContext context);
+        /// <summary>
+        /// Method invoked when associated input action "ChangeGunRight" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnChangeGunRight(InputAction.CallbackContext context);
     }
     /// <summary>
     /// Interface to implement callback methods for all input action callbacks associated with input actions defined by "UI" which allows adding and removing callbacks.

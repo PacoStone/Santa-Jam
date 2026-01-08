@@ -13,11 +13,11 @@ MonoBehaviour:
   m_Name: Escopeta
   m_EditorClassIdentifier: Assembly-CSharp::WeaponDa
   ItemName: La Estrella
-  Icon: {fileID: 21300000, guid: d9a30704871d98646beb98ab5cd8d2a5, type: 3}
+  Icon: {fileID: 21300000, guid: 868dadeece5cb5540977d121d9d0d572, type: 3}
   Description: "Una escopeta de doble ca\xF1on"
   Category: 1
   PreviewAnchorPosition: {x: 0, y: 0}
-  HandsToHold: 0
+  HandsToHold: 2
   Automatic: 0
   FireRate: 4
   MaxReserveAmmo: 32
