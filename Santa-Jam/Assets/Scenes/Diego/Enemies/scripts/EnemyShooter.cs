@@ -10,6 +10,14 @@ public class EnemyShooterAI : MonoBehaviour
     public float stopDistance = 8f;
     public float repositionRadius = 3f;
 
+    [Header("Separación al recolocarse")]
+    public float avoidRadius = 3f;
+    public int repositionTries = 10;
+
+    [Header("Separación dinámica")]
+    public float separationRadius = 2.5f;
+    public float separationStrength = 3f;
+
     [Header("Disparo")]
     public GameObject bulletPrefab;
     public Transform firePoint;
@@ -49,15 +57,16 @@ public class EnemyShooterAI : MonoBehaviour
         HandleShooting();
     }
 
-    // MOVIMIENTO PRINCIPAL
+    // Controla el movimiento general
     void HandleMovement(float dist)
     {
-        //RECOLOCÁNDOSE
+        // Si se está recolocando
         if (isRepositioning)
         {
+            ApplySeparation();
+
             if (!agent.pathPending && agent.remainingDistance <= agent.stoppingDistance)
             {
-                // Ha llegado a la nueva posición
                 isRepositioning = false;
                 isHoldingPosition = true;
                 agent.isStopped = true;
@@ -68,10 +77,9 @@ public class EnemyShooterAI : MonoBehaviour
             return;
         }
 
-        //DISPARANDO
+        // Si está quieto disparando
         if (isHoldingPosition)
         {
-            // Si el jugador se ha ido lejos, volver a avanzar
             if (dist > approachDistance)
             {
                 isHoldingPosition = false;
@@ -84,13 +92,14 @@ public class EnemyShooterAI : MonoBehaviour
             }
         }
 
-        //NORMAL
+        // Movimiento normal hacia el jugador
         if (!isHoldingPosition)
         {
             if (dist > stopDistance)
             {
                 agent.isStopped = false;
                 agent.SetDestination(player.position);
+                ApplySeparation();
             }
             else
             {
@@ -102,7 +111,7 @@ public class EnemyShooterAI : MonoBehaviour
         }
     }
 
-    // APUNTAR
+    // Hace que mire siempre al jugador
     void HandleAiming()
     {
         Vector3 dir = (player.position - transform.position).normalized;
@@ -115,18 +124,17 @@ public class EnemyShooterAI : MonoBehaviour
         }
     }
 
-    // DISPARO
+    // Controla cuándo puede disparar
     void HandleShooting()
     {
         if (!isHoldingPosition || isRepositioning) return;
-
         if (Time.time < nextFireTime) return;
 
         nextFireTime = Time.time + 1f / fireRate;
-
         Shoot();
     }
 
+    // Disparo real
     void Shoot()
     {
         shotsFired++;
@@ -141,44 +149,118 @@ public class EnemyShooterAI : MonoBehaviour
         if (bulletScript != null)
             bulletScript.damage = damage;
 
-   
+        // Si ha disparado suficiente, se recoloca
         if (shotsFired >= currentShotsLimit)
         {
             Reposition();
         }
     }
 
-    // RECOLOCARSE
+    // Busca una nueva posición sin juntarse con otros
     void Reposition()
     {
         isHoldingPosition = false;
         isRepositioning = true;
-
         agent.isStopped = false;
 
-        Vector3 randomDir = Random.insideUnitSphere * repositionRadius;
-        randomDir.y = 0f;
+        bool found = false;
 
-        Vector3 targetPos = transform.position + randomDir;
-
-        // Asegura que esté en NavMesh
-        NavMeshHit hit;
-        if (NavMesh.SamplePosition(targetPos, out hit, repositionRadius, NavMesh.AllAreas))
+        for (int i = 0; i < repositionTries; i++)
         {
-            agent.SetDestination(hit.position);
+            Vector3 randomDir = Random.insideUnitSphere * repositionRadius;
+            randomDir.y = 0f;
+
+            Vector3 candidate = transform.position + randomDir;
+
+            NavMeshHit hit;
+            if (!NavMesh.SamplePosition(candidate, out hit, repositionRadius, NavMesh.AllAreas))
+                continue;
+
+            if (IsPositionSafe(hit.position))
+            {
+                agent.SetDestination(hit.position);
+                found = true;
+                break;
+            }
         }
-        else
+
+        // Si no encuentra sitio válido, se queda donde está
+        if (!found)
         {
-            // fallback: si no encuentra punto válido, cancela recolocación
             isRepositioning = false;
             isHoldingPosition = true;
             agent.isStopped = true;
         }
     }
 
-    // UTILIDAD
+    // Comprueba que no esté demasiado cerca de otros enemigos
+    bool IsPositionSafe(Vector3 pos)
+    {
+        Collider[] hits = Physics.OverlapSphere(pos, avoidRadius);
+
+        foreach (Collider c in hits)
+        {
+            if (c.gameObject == gameObject) continue;
+
+            if (c.GetComponent<EnemyShooterAI>())
+                return false;
+        }
+
+        return true;
+    }
+
+    // Aplica una fuerza para separarse de otros enemigos
+    void ApplySeparation()
+    {
+        Vector3 force = CalculateSeparationForce();
+        if (force == Vector3.zero) return;
+
+        agent.velocity += force * Time.deltaTime;
+    }
+
+    // Calcula la dirección de separación
+    Vector3 CalculateSeparationForce()
+    {
+        Collider[] hits = Physics.OverlapSphere(transform.position, separationRadius);
+
+        Vector3 force = Vector3.zero;
+        int count = 0;
+
+        foreach (Collider c in hits)
+        {
+            if (c.gameObject == gameObject) continue;
+
+            EnemyShooterAI other = c.GetComponent<EnemyShooterAI>();
+            if (!other) continue;
+
+            Vector3 diff = transform.position - c.transform.position;
+            float dist = diff.magnitude;
+
+            if (dist > 0.01f)
+            {
+                force += diff.normalized / dist;
+                count++;
+            }
+        }
+
+        if (count == 0) return Vector3.zero;
+
+        return force.normalized * separationStrength;
+    }
+
+    // Elige cuántos disparos hará antes de moverse
     void PickNewShotLimit()
     {
         currentShotsLimit = Random.Range(minShotsBeforeMove, maxShotsBeforeMove + 1);
+    }
+
+    // Dibuja radios de depuración en escena
+    void OnDrawGizmosSelected()
+    {
+        Gizmos.color = Color.red;
+        Gizmos.DrawWireSphere(transform.position, avoidRadius);
+
+        Gizmos.color = Color.yellow;
+        Gizmos.DrawWireSphere(transform.position, separationRadius);
     }
 }
