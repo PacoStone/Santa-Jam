@@ -525,8 +525,9 @@ public class PlayerAimAndShootController : MonoBehaviour
         BulletProjectile bullet = bulletObj.GetComponent<BulletProjectile>();
         if (bullet != null)
         {
+            int bulletDamage = (data != null) ? data.DamagePerBullet : 1; // Usa el daño del arma si está disponible, si no, usa 1 por defecto.
             bullet.Init(direction, activeSpeed, activeHitDistance, activeMask, bulletHoleDecalPrefab, impactParticlesPrefab,
-                decalOffset, decalScaleRange, decalLifeTime, particlesLifeTime, drawShootRay, rayDrawDuration);
+                decalOffset, decalScaleRange, decalLifeTime, particlesLifeTime, drawShootRay, rayDrawDuration, bulletDamage);
 
             Destroy(bulletObj, Mathf.Max(0.1f, bulletLifeTime));
             return;

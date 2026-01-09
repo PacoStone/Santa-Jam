@@ -14,6 +14,7 @@ GameObject:
   - component: {fileID: 966340517982063608}
   - component: {fileID: 6171036765065287760}
   - component: {fileID: 4735109460964066226}
+  - component: {fileID: 3708162380242748884}
   m_Layer: 0
   m_Name: simple Enemy
   m_TagString: Enemy
@@ -152,3 +153,16 @@ NavMeshAgent:
   m_BaseOffset: 0.5
   m_WalkableMask: 4294967295
   m_ObstacleAvoidanceType: 4
+--- !u!114 &3708162380242748884
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2490312864265963313}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 83059b0da54c3f145a7292326d20b92c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::EnemyHealthController
+  maxHealth: 100

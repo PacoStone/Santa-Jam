@@ -1,0 +1,110 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1001 &4278458401027343637
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 2490312864265963313, guid: 3d8643653531b7d46a949ed4f8618e4c, type: 3}
+      propertyPath: m_Name
+      value: ExplosiveEnemy
+      objectReference: {fileID: 0}
+    - target: {fileID: 8067297035077316736, guid: 3d8643653531b7d46a949ed4f8618e4c, type: 3}
+      propertyPath: m_LocalScale.x
+      value: 2.0783
+      objectReference: {fileID: 0}
+    - target: {fileID: 8067297035077316736, guid: 3d8643653531b7d46a949ed4f8618e4c, type: 3}
+      propertyPath: m_LocalScale.y
+      value: 2.0783
+      objectReference: {fileID: 0}
+    - target: {fileID: 8067297035077316736, guid: 3d8643653531b7d46a949ed4f8618e4c, type: 3}
+      propertyPath: m_LocalScale.z
+      value: 2.0783
+      objectReference: {fileID: 0}
+    - target: {fileID: 8067297035077316736, guid: 3d8643653531b7d46a949ed4f8618e4c, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8067297035077316736, guid: 3d8643653531b7d46a949ed4f8618e4c, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8067297035077316736, guid: 3d8643653531b7d46a949ed4f8618e4c, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8067297035077316736, guid: 3d8643653531b7d46a949ed4f8618e4c, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8067297035077316736, guid: 3d8643653531b7d46a949ed4f8618e4c, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8067297035077316736, guid: 3d8643653531b7d46a949ed4f8618e4c, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8067297035077316736, guid: 3d8643653531b7d46a949ed4f8618e4c, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8067297035077316736, guid: 3d8643653531b7d46a949ed4f8618e4c, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8067297035077316736, guid: 3d8643653531b7d46a949ed4f8618e4c, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8067297035077316736, guid: 3d8643653531b7d46a949ed4f8618e4c, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8853144938980447169, guid: 3d8643653531b7d46a949ed4f8618e4c, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: dd477f984eece784b89653f4e57a8468, type: 2}
+    m_RemovedComponents:
+    - {fileID: 6171036765065287760, guid: 3d8643653531b7d46a949ed4f8618e4c, type: 3}
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 2490312864265963313, guid: 3d8643653531b7d46a949ed4f8618e4c, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 4401003431724770564}
+  m_SourcePrefab: {fileID: 100100000, guid: 3d8643653531b7d46a949ed4f8618e4c, type: 3}
+--- !u!1 &1868850240135479844 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 2490312864265963313, guid: 3d8643653531b7d46a949ed4f8618e4c, type: 3}
+  m_PrefabInstance: {fileID: 4278458401027343637}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &4401003431724770564
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1868850240135479844}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a874c999dde62b347a21d9d2e5e69fa1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::EnemyExplosive
+  player: {fileID: 0}
+  baseSpeed: 6
+  slowMultiplierPerHit: 0.15
+  maxHealth: 50
+  scaleIncreasePerHit: 0.15
+  maxScale: 2.5
+  explosionRadius: 5
+  explosionDamage: 30
+  explosionForce: 600
+  explosionUpwards: 1.5
+  controllerPushForce: 12
+  controllerPushTime: 0.25
+  explosionEffect: {fileID: 0}
+  explodeDistanceToPlayer: 2

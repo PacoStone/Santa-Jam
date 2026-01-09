@@ -1,10 +1,5 @@
 using UnityEngine;
 
-/// Proyectil simple:
-/// Se mueve con Rigidbody (si existe) o con Translate.
-/// Detecta impacto con Raycast corto (para evitar atravesar colliders).
-/// Al impactar: spawnea decal + partículas y se destruye.
-
 public class BulletProjectile : MonoBehaviour
 {
     private Vector3 direction;
@@ -28,14 +23,29 @@ public class BulletProjectile : MonoBehaviour
 
     private bool initialized;
 
+    // Daño
+    public int damage = 10;
+
     private void Awake()
     {
         rb = GetComponent<Rigidbody>();
     }
 
-    public void Init(Vector3 dir, float bulletSpeed, float hitDistance, LayerMask envMask, GameObject bulletHoleDecalPrefab,
-        ParticleSystem particlesPrefab, float surfaceOffset, Vector2 scaleRange, float decalTTL, float particlesTTL,
-        bool debugDraw, float debugDrawDuration)
+    public void Init(
+        Vector3 dir,
+        float bulletSpeed,
+        float hitDistance,
+        LayerMask envMask,
+        GameObject bulletHoleDecalPrefab,
+        ParticleSystem particlesPrefab,
+        float surfaceOffset,
+        Vector2 scaleRange,
+        float decalTTL,
+        float particlesTTL,
+        bool debugDraw,
+        float debugDrawDuration,
+        int bulletDamage
+    )
     {
         direction = dir.normalized;
         speed = Mathf.Max(0.01f, bulletSpeed);
@@ -52,6 +62,8 @@ public class BulletProjectile : MonoBehaviour
 
         drawDebug = debugDraw;
         debugDuration = debugDrawDuration;
+
+        damage = bulletDamage;
 
         startPos = transform.position;
         initialized = true;
@@ -74,7 +86,13 @@ public class BulletProjectile : MonoBehaviour
 
         float step = speed * Time.deltaTime;
 
-        if (Physics.Raycast(transform.position, direction, out RaycastHit hit, step + 0.05f, environmentMask, QueryTriggerInteraction.Ignore))
+        if (Physics.Raycast(
+            transform.position,
+            direction,
+            out RaycastHit hit,
+            step + 0.05f,
+            environmentMask,
+            QueryTriggerInteraction.Ignore))
         {
             if (drawDebug)
             {
@@ -104,17 +122,31 @@ public class BulletProjectile : MonoBehaviour
         RaycastHit hit = new RaycastHit();
         hit.point = cp.point;
         hit.normal = cp.normal;
-        //hit.collider = collision.collider;
 
         OnHit(hit);
     }
 
     private void OnHit(RaycastHit hit)
     {
+        ApplyDamage(hit.collider);
         SpawnDecal(hit);
         SpawnParticles(hit);
 
         Destroy(gameObject);
+    }
+
+    // Aplica daño al objetivo impactado
+    private void ApplyDamage(Collider col)
+    {
+        if (col == null) return;
+
+        // Daño a enemigos
+        EnemyHealthController enemyHp = col.GetComponent<EnemyHealthController>();
+        if (enemyHp != null)
+        {
+            enemyHp.TakeDamage(damage);
+            return;
+        }
     }
 
     private void SpawnDecal(RaycastHit hit)

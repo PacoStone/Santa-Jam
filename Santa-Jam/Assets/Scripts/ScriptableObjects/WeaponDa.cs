@@ -8,6 +8,7 @@ public class WeaponDa : InGameItem
     public int MaxReserveAmmo = 90;
     public int BulletsPerMagazine = 30;
     public float ReloadTime = 1.6f;
+    public int DamagePerBullet = 20;
 
     [Header("Hit / Projectile")]
     public float HitDistance = 30f;
