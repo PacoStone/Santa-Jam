@@ -2,6 +2,7 @@ using System;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.DualShock;
+using UnityEngine.Rendering.PostProcessing;
 //using UnityEngine.InputSystem.DualSense;
 
 [RequireComponent(typeof(PlayerInput))]
@@ -88,6 +89,11 @@ public class InputManager : MonoBehaviour
 
         _lastGlyphSet = CurrentGlyphSet;
         _lastControlScheme = playerInput.currentControlScheme;
+
+        /*
+        PostProcessVolume ppVolume = Camera.main.gameObject.GetComponent<PostProcessVolume>();
+        ppVolume.enabled = !ppVolume.enabled;
+        */
     }
 
     private void Update()
@@ -128,9 +134,13 @@ public class InputManager : MonoBehaviour
             Gamepad gp = GetActiveGamepadFromPlayerInput();
 
             if (gp is DualSenseGamepadHID || gp is DualShockGamepad)
+            {
                 target = GlyphSet.PlayStation;
+            }
             else
+            {
                 target = GlyphSet.Xbox;
+            }
         }
 
         CurrentGlyphSet = target;
@@ -148,12 +158,14 @@ public class InputManager : MonoBehaviour
 
     private Gamepad GetActiveGamepadFromPlayerInput()
     {
-        if (playerInput == null) return Gamepad.current;
+        if (playerInput == null) 
+            return Gamepad.current;
 
         // PlayerInput.devices suele contener el device activo según control scheme
         foreach (var d in playerInput.devices)
         {
-            if (d is Gamepad g) return g;
+            if (d is Gamepad g) 
+                return g;
         }
 
         return Gamepad.current;
