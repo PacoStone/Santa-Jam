@@ -39,9 +39,13 @@ public class LevelLoader : MonoBehaviour
     public void LoadConfiguredTarget()
     {
         if (targetMode == TargetMode.BuildIndex)
+        {
             LoadLevelByBuildIndex(targetBuildIndex);
+        }
         else
+        {
             LoadLevelByName(targetSceneName);
+        }
     }
 
     /// Para Button OnClick() pasando un int (Build Index).
@@ -73,6 +77,7 @@ public class LevelLoader : MonoBehaviour
     {
         targetMode = TargetMode.BuildIndex;
         targetBuildIndex = buildIndex;
+        Debug.Log("[LevelLoader] Target Build Index set to " + buildIndex);
     }
 
     /// Permite cambiar el destino por código (por ejemplo, al hacer hover en la tienda).
@@ -80,6 +85,7 @@ public class LevelLoader : MonoBehaviour
     {
         targetMode = TargetMode.SceneName;
         targetSceneName = sceneName;
+        Debug.Log("[LevelLoader] Target Scene Name set to " + sceneName);
     }
 
     // Internals

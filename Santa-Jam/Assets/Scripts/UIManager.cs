@@ -55,10 +55,43 @@ public class UIManager : MonoBehaviour
     [Tooltip("dB máximo para slider a 1.")]
     [SerializeField] private float maxVolumeDb = 0f;
 
+    [Header("Options Slide Animation")]
+    [Tooltip("RectTransform del EmptyObject 'options'. Si lo dejas vacío, se obtiene de optionsRoot.")]
+    [SerializeField] private RectTransform optionsPanel;
+
+    [Tooltip("Los 4 EmptyObjects (RectTransform) que quieres desplazar al pulsar Opciones (según tu imagen).")]
+    [SerializeField] private RectTransform[] otherRootsToShift;
+
+    [Tooltip("Cuánto se desplaza el panel options hacia la derecha al entrar.")]
+    [SerializeField] private float optionsSlideX = 650f;
+
+    [Tooltip("Cuánto se desplazan los otros 4 empties (normalmente hacia la izquierda: valor negativo).")]
+    [SerializeField] private float othersSlideX = -650f;
+
+    [Tooltip("Duración del deslizamiento.")]
+    [SerializeField] private float slideSeconds = 0.25f;
+
+    [Tooltip("Curva del deslizamiento (ease in/out).")]
+    [SerializeField] private AnimationCurve slideEase = AnimationCurve.EaseInOut(0, 0, 1, 1);
+
+    [Tooltip("Si está activado, durante la animación mantiene ambos grupos activos para que el slide sea visible.")]
+    [SerializeField] private bool keepBothGroupsActiveDuringSlide = true;
+
+    [Tooltip("Si tus RectTransforms están en 'Stretch' y anchoredPosition da guerra, usa localPosition.")]
+    [SerializeField] private bool slideUsingLocalPosition = false;
+
     public bool IsPaused { get; private set; }
 
     private Coroutine _blendRoutine;
+    private Coroutine _slideRoutine;
+
     private ColorAdjustments _colorAdjustments;
+
+    // Posiciones base (para volver “tal y como estaba antes”)
+    private Vector3 _optionsBasePos;
+    private Vector3[] _othersBasePos;
+
+    private bool _inOptions = false;
 
     private void Awake()
     {
@@ -66,6 +99,12 @@ public class UIManager : MonoBehaviour
         if (pauseMenuRoot != null) pauseMenuRoot.SetActive(false);
         if (basicButtonsRoot != null) basicButtonsRoot.SetActive(true);
         if (optionsRoot != null) optionsRoot.SetActive(false);
+
+        // Resolve optionsPanel si no está asignado
+        if (optionsPanel == null && optionsRoot != null)
+            optionsPanel = optionsRoot.GetComponent<RectTransform>();
+
+        CacheBaseSlidePositions();
 
         // Pause volume preparado (blur)
         if (pauseVolume != null)
@@ -117,7 +156,9 @@ public class UIManager : MonoBehaviour
         }
     }
 
+    // --------------------------
     //  PAUSE CORE
+    // --------------------------
     public void TogglePause()
     {
         SetPaused(!IsPaused);
@@ -135,7 +176,8 @@ public class UIManager : MonoBehaviour
         // Al pausar, vuelve al panel básico
         if (paused)
         {
-            ShowBasicMenu();
+            _inOptions = false;
+            ShowBasicMenuInstant(); // importante: resetea posiciones y estados
         }
         else
         {
@@ -145,8 +187,9 @@ public class UIManager : MonoBehaviour
         // Time
         Time.timeScale = paused ? 0f : 1f;
 
-        // Action Maps (para despausar con la misma tecla, la acción de pausa debe existir también en UI map)
-        playerInput.SwitchCurrentActionMap(paused ? uiMapName : gameplayMapName);
+        // Action Maps
+        if (playerInput != null)
+            playerInput.SwitchCurrentActionMap(paused ? uiMapName : gameplayMapName);
 
         // Cursor
         if (unlockCursorOnPause)
@@ -158,20 +201,19 @@ public class UIManager : MonoBehaviour
         // Blur (weight del volume URP)
         if (pauseVolume != null)
         {
-            StopCoroutine(_blendRoutine);
+            if (_blendRoutine != null) StopCoroutine(_blendRoutine); // evita "routine is null"
             _blendRoutine = StartCoroutine(BlendPauseVolume(paused ? pausedWeight : 0f));
         }
     }
 
     private IEnumerator BlendPauseVolume(float target)
     {
-        if (pauseVolume == null) 
+        if (pauseVolume == null)
             yield break;
 
         float start = pauseVolume.weight;
         float t = 0f;
 
-        // Unscaled para funcionar con timeScale=0
         while (t < blendSeconds)
         {
             t += Time.unscaledDeltaTime;
@@ -183,25 +225,44 @@ public class UIManager : MonoBehaviour
         pauseVolume.weight = target;
     }
 
+    // --------------------------
+    //  PANELS
+    // --------------------------
     private void HideAllPausePanels()
     {
-        basicButtonsRoot.SetActive(false);
-        optionsRoot.SetActive(false);
+        if (basicButtonsRoot != null) basicButtonsRoot.SetActive(false);
+        if (optionsRoot != null) optionsRoot.SetActive(false);
     }
 
-    private void ShowBasicMenu()
+    private void ShowBasicMenuInstant()
     {
-        basicButtonsRoot.SetActive(true);
-        optionsRoot.SetActive(false);
+        // Detén animación de slide si está activa
+        if (_slideRoutine != null) StopCoroutine(_slideRoutine);
+        _slideRoutine = null;
+
+        // Activos correctos
+        if (basicButtonsRoot != null) basicButtonsRoot.SetActive(true);
+        if (optionsRoot != null) optionsRoot.SetActive(false);
+
+        // Vuelve a posiciones base (deja todo como estaba antes)
+        RestoreBaseSlidePositions();
     }
 
-    private void ShowOptionsMenu()
+    private void ShowOptionsMenuInstant()
     {
-        basicButtonsRoot.SetActive(false);
-        optionsRoot.SetActive(true);
+        if (_slideRoutine != null) StopCoroutine(_slideRoutine);
+        _slideRoutine = null;
+
+        if (basicButtonsRoot != null) basicButtonsRoot.SetActive(false);
+        if (optionsRoot != null) optionsRoot.SetActive(true);
+
+        // Coloca posiciones ya desplazadas
+        ApplyOptionsSlidePositions();
     }
 
+    // --------------------------
     //  BUTTON CALLBACKS
+    // --------------------------
 
     // Botón: Continuar
     public void OnContinueClicked()
@@ -212,17 +273,50 @@ public class UIManager : MonoBehaviour
     // Botón: Opciones
     public void OnOptionsClicked()
     {
-        ShowOptionsMenu();
+        if (!IsPaused) return;
+        if (_inOptions) return;
+
+        _inOptions = true;
+
+        // Si quieres ver el slide, ambos activos durante la transición
+        if (keepBothGroupsActiveDuringSlide)
+        {
+            if (basicButtonsRoot != null) basicButtonsRoot.SetActive(true);
+            if (optionsRoot != null) optionsRoot.SetActive(true);
+        }
+        else
+        {
+            if (optionsRoot != null) optionsRoot.SetActive(true);
+        }
+
+        StartOptionsSlide(toOptions: true);
     }
 
     // Botón: Atrás (Opciones)
     public void OnBackFromOptionsClicked()
     {
-        ShowBasicMenu();
+        if (!IsPaused) return;
+        if (!_inOptions) return;
+
+        _inOptions = false;
+
+        // Para volver, también conviene que ambos estén activos durante el slide
+        if (keepBothGroupsActiveDuringSlide)
+        {
+            if (basicButtonsRoot != null) basicButtonsRoot.SetActive(true);
+            if (optionsRoot != null) optionsRoot.SetActive(true);
+        }
+        else
+        {
+            if (basicButtonsRoot != null) basicButtonsRoot.SetActive(true);
+        }
+
+        StartOptionsSlide(toOptions: false);
     }
 
+    // --------------------------
     //  OPTIONS
-    // Toggle: Pantalla completa
+    // --------------------------
     public void SetFullscreen(bool isFullscreen)
     {
         Screen.fullScreen = isFullscreen;
@@ -233,7 +327,6 @@ public class UIManager : MonoBehaviour
     {
         if (_colorAdjustments == null)
         {
-            // Intenta cachear de nuevo por si el profile se asignó después
             if (brightnessVolume != null && brightnessVolume.profile != null)
                 brightnessVolume.profile.TryGet(out _colorAdjustments);
 
@@ -241,8 +334,6 @@ public class UIManager : MonoBehaviour
         }
 
         float exposure = Mathf.Lerp(minPostExposure, maxPostExposure, Mathf.Clamp01(v01));
-
-        // Asegura que está activo el override y aplica valor
         _colorAdjustments.postExposure.overrideState = true;
         _colorAdjustments.postExposure.value = exposure;
     }
@@ -254,8 +345,9 @@ public class UIManager : MonoBehaviour
 
         if (audioMixer != null && !string.IsNullOrEmpty(mixerExposedVolumeParam))
         {
-            // 0..1 -> dB (curva log, con corte en 0)
-            float db = (v01 <= 0.0001f) ? minVolumeDb : Mathf.Lerp(minVolumeDb, maxVolumeDb, Mathf.InverseLerp(0.0001f, 1f, v01));
+            float db = (v01 <= 0.0001f)
+                ? minVolumeDb
+                : Mathf.Lerp(minVolumeDb, maxVolumeDb, Mathf.InverseLerp(0.0001f, 1f, v01));
 
             audioMixer.SetFloat(mixerExposedVolumeParam, Mathf.Clamp(db, minVolumeDb, maxVolumeDb));
         }
@@ -263,5 +355,143 @@ public class UIManager : MonoBehaviour
         {
             AudioListener.volume = v01;
         }
+    }
+
+    // --------------------------
+    //  SLIDE LOGIC (OPTIONS)
+    // --------------------------
+
+    private void CacheBaseSlidePositions()
+    {
+        // Guardamos base del panel options
+        if (optionsPanel != null)
+            _optionsBasePos = GetRTPos(optionsPanel);
+
+        // Guardamos base de los “otros 4”
+        if (otherRootsToShift != null && otherRootsToShift.Length > 0)
+        {
+            _othersBasePos = new Vector3[otherRootsToShift.Length];
+            for (int i = 0; i < otherRootsToShift.Length; i++)
+            {
+                _othersBasePos[i] = otherRootsToShift[i] != null ? GetRTPos(otherRootsToShift[i]) : Vector3.zero;
+            }
+        }
+        else
+        {
+            _othersBasePos = new Vector3[0];
+        }
+    }
+
+    private void RestoreBaseSlidePositions()
+    {
+        if (optionsPanel != null)
+            SetRTPos(optionsPanel, _optionsBasePos);
+
+        for (int i = 0; i < otherRootsToShift.Length; i++)
+        {
+            if (otherRootsToShift[i] == null) continue;
+            SetRTPos(otherRootsToShift[i], _othersBasePos[i]);
+        }
+    }
+
+    private void ApplyOptionsSlidePositions()
+    {
+        // options hacia la derecha
+        if (optionsPanel != null)
+        {
+            Vector3 p = _optionsBasePos + new Vector3(optionsSlideX, 0f, 0f);
+            SetRTPos(optionsPanel, p);
+        }
+
+        // otros 4 se desplazan a la vez
+        for (int i = 0; i < otherRootsToShift.Length; i++)
+        {
+            if (otherRootsToShift[i] == null) continue;
+            Vector3 p = _othersBasePos[i] + new Vector3(othersSlideX, 0f, 0f);
+            SetRTPos(otherRootsToShift[i], p);
+        }
+    }
+
+    private void StartOptionsSlide(bool toOptions)
+    {
+        if (_slideRoutine != null) StopCoroutine(_slideRoutine);
+        _slideRoutine = StartCoroutine(CoSlideOptions(toOptions));
+    }
+
+    private IEnumerator CoSlideOptions(bool toOptions)
+    {
+        float d = Mathf.Max(0.0001f, slideSeconds);
+        float t = 0f;
+
+        // Posiciones de inicio
+        Vector3 optionsFrom = optionsPanel != null ? GetRTPos(optionsPanel) : Vector3.zero;
+        Vector3[] othersFrom = new Vector3[otherRootsToShift.Length];
+        for (int i = 0; i < otherRootsToShift.Length; i++)
+            othersFrom[i] = otherRootsToShift[i] != null ? GetRTPos(otherRootsToShift[i]) : Vector3.zero;
+
+        // Posiciones objetivo
+        Vector3 optionsTo = _optionsBasePos + (toOptions ? new Vector3(optionsSlideX, 0f, 0f) : Vector3.zero);
+
+        Vector3[] othersTo = new Vector3[otherRootsToShift.Length];
+        for (int i = 0; i < otherRootsToShift.Length; i++)
+        {
+            othersTo[i] = _othersBasePos[i] + (toOptions ? new Vector3(othersSlideX, 0f, 0f) : Vector3.zero);
+        }
+
+        while (t < d)
+        {
+            t += Time.unscaledDeltaTime;
+            float a = Mathf.Clamp01(t / d);
+            float e = (slideEase != null) ? slideEase.Evaluate(a) : a;
+
+            if (optionsPanel != null)
+                SetRTPos(optionsPanel, Vector3.LerpUnclamped(optionsFrom, optionsTo, e));
+
+            for (int i = 0; i < otherRootsToShift.Length; i++)
+            {
+                if (otherRootsToShift[i] == null) continue;
+                SetRTPos(otherRootsToShift[i], Vector3.LerpUnclamped(othersFrom[i], othersTo[i], e));
+            }
+
+            yield return null;
+        }
+
+        // Snap final
+        if (optionsPanel != null) SetRTPos(optionsPanel, optionsTo);
+        for (int i = 0; i < otherRootsToShift.Length; i++)
+        {
+            if (otherRootsToShift[i] == null) continue;
+            SetRTPos(otherRootsToShift[i], othersTo[i]);
+        }
+
+        // Al terminar, dejamos activos solo los grupos correctos
+        if (toOptions)
+        {
+            if (basicButtonsRoot != null) basicButtonsRoot.SetActive(false);
+            if (optionsRoot != null) optionsRoot.SetActive(true);
+        }
+        else
+        {
+            if (basicButtonsRoot != null) basicButtonsRoot.SetActive(true);
+            if (optionsRoot != null) optionsRoot.SetActive(false);
+        }
+
+        _slideRoutine = null;
+    }
+
+    private Vector3 GetRTPos(RectTransform rt)
+    {
+        if (rt == null) return Vector3.zero;
+        return slideUsingLocalPosition ? rt.localPosition : (Vector3)rt.anchoredPosition;
+    }
+
+    private void SetRTPos(RectTransform rt, Vector3 value)
+    {
+        if (rt == null) return;
+
+        if (slideUsingLocalPosition)
+            rt.localPosition = value;
+        else
+            rt.anchoredPosition = (Vector2)value;
     }
 }

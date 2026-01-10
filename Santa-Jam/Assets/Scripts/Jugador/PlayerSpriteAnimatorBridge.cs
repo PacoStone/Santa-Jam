@@ -18,6 +18,7 @@ public class PlayerSpriteAnimatorBridge : MonoBehaviour
     [SerializeField] private string sprintParam = "Sprinting";
     [SerializeField] private string aimParam = "Aiming";
     [SerializeField] private string deadParam = "Dead";
+    [SerializeField] private string hurt = "Hurt";
 
     public enum SpeedMode
     {
@@ -61,7 +62,10 @@ public class PlayerSpriteAnimatorBridge : MonoBehaviour
 
         // 1) Speed (signed)
         float speed = ComputeSignedSpeed();
-        if (Mathf.Abs(speed) < deadZone) speed = 0f;
+        if (Mathf.Abs(speed) < deadZone)
+        {
+            speed = 0f;
+        }
         animator.SetFloat(speedParam, speed);
 
         // 2) Grounded
