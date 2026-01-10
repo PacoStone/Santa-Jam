@@ -8,27 +8,19 @@ public class CardsFanHUDController : MonoBehaviour
     [SerializeField] private InputManager input;
     [SerializeField] private WeaponInventoryController inventory;
 
-    [Header("Cards (RectTransforms)")]
-    [SerializeField] private RectTransform card0;
-    [SerializeField] private RectTransform card1;
-    [SerializeField] private RectTransform card2;
+    [Header("Cards (RectTransforms) - order = slot index")]
+    [Tooltip("Un elemento por slot. El índice 0..N-1 debe corresponder con el slot del inventario.")]
+    [SerializeField] private RectTransform[] cards;
 
     [Header("Hints (GameObjects)")]
     [SerializeField] private GameObject hintQ;
     [SerializeField] private GameObject hintE;
 
-    [Header("Optional overlays (NOT the card background)")]
-    [Tooltip("Asigna solo si tienes un Image 'WeaponIcon' por carta. Si lo dejas vacío, no toco sprites/alpha.")]
-    [SerializeField] private Image icon0;
-    [SerializeField] private Image icon1;
-    [SerializeField] private Image icon2;
+    [Header("Optional overlays (same length/order as cards)")]
+    [SerializeField] private Image[] icons;
+    [SerializeField] private Image[] reloadFills;
 
-    [Tooltip("Asigna solo si tienes un Image filled para recarga por carta.")]
-    [SerializeField] private Image reloadFill0;
-    [SerializeField] private Image reloadFill1;
-    [SerializeField] private Image reloadFill2;
-
-    [Header("Fan Layout (offsets)")]
+    [Header("Fan Layout")]
     [SerializeField] private float sideX = 80f;
     [SerializeField] private float sideY = -15f;
     [SerializeField] private float sideRotZ = 20f;
@@ -43,19 +35,12 @@ public class CardsFanHUDController : MonoBehaviour
     [SerializeField] private Ease moveEase = Ease.OutCubic;
 
     [Header("Safety / Debug")]
-    [Tooltip("Auto-encontrar Input/Inventory si están en None (no toca transforms).")]
     [SerializeField] private bool autoWireRefs = true;
 
-    // Internals
-    private RectTransform[] _cards;
-    private Image[] _icons;
-    private Image[] _reloadFills;
-
-    // Pose base (la del editor) para restaurar al salir
+    // Base pose
     private Vector2[] _baseAnchoredPos;
     private Vector3[] _baseScales;
     private float[] _baseRotZ;
-
     private bool _basePoseCached;
 
     private int _lastIndex = int.MinValue;
@@ -63,14 +48,10 @@ public class CardsFanHUDController : MonoBehaviour
 
     private void Awake()
     {
-        _cards = new[] { card0, card1, card2 };
-        _icons = new[] { icon0, icon1, icon2 };
-        _reloadFills = new[] { reloadFill0, reloadFill1, reloadFill2 };
-
         if (autoWireRefs)
             AutoWire();
 
-        CacheBasePose(); // IMPORTANT: cachea la pose del editor al entrar en play
+        CacheBasePose();
     }
 
     private void OnEnable()
@@ -87,14 +68,15 @@ public class CardsFanHUDController : MonoBehaviour
 
     private void Update()
     {
-        if (inventory == null)
+        if (inventory == null || cards == null || cards.Length == 0)
         {
             SetHints(false);
             SetAllCardsActive(false);
             return;
         }
 
-        if (input != null && inventory.HasAtLeastTwoWeapons())
+        // Cambio con Q/E (si tu InputManager lo expone)
+        if (input != null && inventory.WeaponCount() >= 2)
         {
             if (input.changeGunLeftPressed) inventory.ChangeLeft();
             if (input.changeGunRightPressed) inventory.ChangeRight();
@@ -108,31 +90,17 @@ public class CardsFanHUDController : MonoBehaviour
         if (inventory != null)
             inventory.OnWeaponChanged -= HandleWeaponChanged;
 
-        // Al desactivar (y al salir de Play), restauramos la pose base.
         RestoreBasePose();
     }
 
     private void OnDestroy()
     {
-        // Extra safety
         RestoreBasePose();
     }
 
     private void HandleWeaponChanged(int _)
     {
         ForceRefreshLayout();
-    }
-
-    [ContextMenu("Recache Base Pose From Current Transforms")]
-    public void RecacheBasePoseFromCurrent()
-    {
-        CacheBasePose();
-    }
-
-    [ContextMenu("Restore Base Pose Now")]
-    public void RestoreBasePoseNow()
-    {
-        RestoreBasePose();
     }
 
     [ContextMenu("Force Refresh Layout")]
@@ -143,28 +111,34 @@ public class CardsFanHUDController : MonoBehaviour
 
     private void FullRefresh(bool forceInstant)
     {
-        int count = inventory.WeaponCount();
-        bool canCycle = count >= 2;
+        int slotCountUI = cards.Length;
+
+        // Nota: WeaponCount() solo cuenta slots ocupados; slotCountUI es cuántas “cartas” existen en UI
+        int countWeapons = inventory.WeaponCount();
+        bool canCycle = countWeapons >= 2;
 
         SetHints(canCycle);
 
-        if (count == 0)
+        if (countWeapons == 0)
         {
             SetAllCardsActive(false);
             return;
         }
 
-        for (int i = 0; i < 3; i++)
+        // Activa/desactiva cartas por ocupación del slot
+        for (int i = 0; i < slotCountUI; i++)
         {
-            bool occupied = inventory.GetWeapon(i) != null;
-            if (_cards[i] != null) _cards[i].gameObject.SetActive(occupied);
+            bool occupied = inventory.GetWeaponInSlot(i) != null; // si tu inventario aún es de 3 slots, esto necesitará ampliarse
+            if (cards[i] != null) cards[i].gameObject.SetActive(occupied);
         }
 
         RefreshWeaponIconsOverlay();
+        RefreshReloadFills();
 
-        if (count == 1)
+        // Layout
+        if (countWeapons == 1)
         {
-            int only = FindOnlyOccupiedSlot();
+            int only = FindOnlyOccupiedSlot(slotCountUI);
             if (only == -1)
             {
                 SetAllCardsActive(false);
@@ -174,12 +148,11 @@ public class CardsFanHUDController : MonoBehaviour
             if (forceInstant) ApplySingleInstant(only);
             else ApplySingleAnimated(only);
 
-            RefreshReloadFills();
             return;
         }
 
         int idx = inventory.CurrentIndex;
-        if (idx < 0) idx = FindFirstOccupiedSlot();
+        if (idx < 0) idx = FindFirstOccupiedSlot(slotCountUI);
 
         if (idx != _lastIndex)
         {
@@ -188,28 +161,28 @@ public class CardsFanHUDController : MonoBehaviour
             if (forceInstant) ApplyFanInstant(idx);
             else ApplyFanAnimated(idx);
         }
-
-        RefreshReloadFills();
     }
 
     private void ApplySingleInstant(int onlySlot)
     {
         _layoutTween?.Kill();
 
-        if (_cards[onlySlot] == null) return;
+        var c = GetCard(onlySlot);
+        if (c == null) return;
 
-        _cards[onlySlot].anchoredPosition = new Vector2(0f, centerY);
-        _cards[onlySlot].localRotation = Quaternion.Euler(0f, 0f, _baseRotZ[onlySlot]);
-        _cards[onlySlot].localScale = _baseScales[onlySlot] * centerScaleMultiplier;
+        c.anchoredPosition = new Vector2(0f, centerY);
+        c.localRotation = Quaternion.Euler(0f, 0f, _baseRotZ[onlySlot]);
+        c.localScale = _baseScales[onlySlot] * centerScaleMultiplier;
 
-        _cards[onlySlot].SetAsLastSibling();
+        c.SetAsLastSibling();
     }
 
     private void ApplySingleAnimated(int onlySlot)
     {
         _layoutTween?.Kill();
 
-        if (_cards[onlySlot] == null) return;
+        var c = GetCard(onlySlot);
+        if (c == null) return;
 
         Sequence seq = DOTween.Sequence().SetUpdate(true);
 
@@ -217,11 +190,11 @@ public class CardsFanHUDController : MonoBehaviour
         float z = _baseRotZ[onlySlot];
         Vector3 sc = _baseScales[onlySlot] * centerScaleMultiplier;
 
-        seq.Join(_cards[onlySlot].DOAnchorPos(pos, moveDur).SetEase(moveEase));
-        seq.Join(_cards[onlySlot].DOLocalRotate(new Vector3(0f, 0f, z), moveDur).SetEase(moveEase));
-        seq.Join(_cards[onlySlot].DOScale(sc, moveDur).SetEase(moveEase));
+        seq.Join(c.DOAnchorPos(pos, moveDur).SetEase(moveEase));
+        seq.Join(c.DOLocalRotate(new Vector3(0f, 0f, z), moveDur).SetEase(moveEase));
+        seq.Join(c.DOScale(sc, moveDur).SetEase(moveEase));
 
-        seq.OnComplete(() => _cards[onlySlot].SetAsLastSibling());
+        seq.OnComplete(() => c.SetAsLastSibling());
         _layoutTween = seq;
     }
 
@@ -229,124 +202,142 @@ public class CardsFanHUDController : MonoBehaviour
     {
         _layoutTween?.Kill();
 
-        for (int i = 0; i < 3; i++)
+        // Solo mostramos un “fan” de 3: izquierda-centro-derecha alrededor del seleccionado (estilo Balatro).
+        // El resto de cartas, si existen, se quedan donde estén (o puedes ocultarlas si quieres).
+        int left = FindPrevOccupied(selectedIndex);
+        int right = FindNextOccupied(selectedIndex);
+
+        for (int i = 0; i < cards.Length; i++)
         {
-            if (_cards[i] == null) continue;
-            if (!_cards[i].gameObject.activeSelf) continue;
+            var c = cards[i];
+            if (c == null || !c.gameObject.activeSelf) continue;
 
-            GetFanTargets(i, selectedIndex, out Vector2 pos, out float rotZOffset, out float scaleMul);
+            GetFanTargets3(i, left, selectedIndex, right, out Vector2 pos, out float rotZOffset, out float scaleMul);
 
-            _cards[i].anchoredPosition = pos;
-            _cards[i].localRotation = Quaternion.Euler(0f, 0f, _baseRotZ[i] + rotZOffset);
-            _cards[i].localScale = _baseScales[i] * scaleMul;
+            c.anchoredPosition = pos;
+            c.localRotation = Quaternion.Euler(0f, 0f, _baseRotZ[i] + rotZOffset);
+            c.localScale = _baseScales[i] * scaleMul;
         }
 
-        if (_cards[selectedIndex] != null)
-            _cards[selectedIndex].SetAsLastSibling();
+        var sel = GetCard(selectedIndex);
+        if (sel != null) sel.SetAsLastSibling();
     }
 
     private void ApplyFanAnimated(int selectedIndex)
     {
         _layoutTween?.Kill();
 
+        int left = FindPrevOccupied(selectedIndex);
+        int right = FindNextOccupied(selectedIndex);
+
         Sequence seq = DOTween.Sequence().SetUpdate(true);
 
-        for (int i = 0; i < 3; i++)
+        for (int i = 0; i < cards.Length; i++)
         {
-            if (_cards[i] == null) continue;
-            if (!_cards[i].gameObject.activeSelf) continue;
+            var c = cards[i];
+            if (c == null || !c.gameObject.activeSelf) continue;
 
-            GetFanTargets(i, selectedIndex, out Vector2 pos, out float rotZOffset, out float scaleMul);
+            GetFanTargets3(i, left, selectedIndex, right, out Vector2 pos, out float rotZOffset, out float scaleMul);
 
             Vector3 targetScale = _baseScales[i] * scaleMul;
             float targetRotZ = _baseRotZ[i] + rotZOffset;
 
-            seq.Join(_cards[i].DOAnchorPos(pos, moveDur).SetEase(moveEase));
-            seq.Join(_cards[i].DOLocalRotate(new Vector3(0f, 0f, targetRotZ), moveDur).SetEase(moveEase));
-            seq.Join(_cards[i].DOScale(targetScale, moveDur).SetEase(moveEase));
+            seq.Join(c.DOAnchorPos(pos, moveDur).SetEase(moveEase));
+            seq.Join(c.DOLocalRotate(new Vector3(0f, 0f, targetRotZ), moveDur).SetEase(moveEase));
+            seq.Join(c.DOScale(targetScale, moveDur).SetEase(moveEase));
         }
 
         seq.OnComplete(() =>
         {
-            if (_cards[selectedIndex] != null)
-                _cards[selectedIndex].SetAsLastSibling();
+            var sel = GetCard(selectedIndex);
+            if (sel != null) sel.SetAsLastSibling();
         });
 
         _layoutTween = seq;
 
-        if (_cards[selectedIndex] != null)
-            _cards[selectedIndex].DOPunchScale(_baseScales[selectedIndex] * 0.06f, 0.16f, 10, 0.85f).SetUpdate(true);
+        var selected = GetCard(selectedIndex);
+        if (selected != null)
+            selected.DOPunchScale(_baseScales[selectedIndex] * 0.06f, 0.16f, 10, 0.85f).SetUpdate(true);
     }
 
-    private void GetFanTargets(int cardIndex, int selectedIndex, out Vector2 pos, out float rotZOffset, out float scaleMul)
+    private void GetFanTargets3(int cardIndex, int leftIndex, int selectedIndex, int rightIndex,
+        out Vector2 pos, out float rotZOffset, out float scaleMul)
     {
-        int leftIndex = Mod(selectedIndex - 1, 3);
-        int rightIndex = Mod(selectedIndex + 1, 3);
-
         if (cardIndex == selectedIndex)
         {
             pos = new Vector2(0f, centerY);
             rotZOffset = 0f;
             scaleMul = centerScaleMultiplier;
+            return;
         }
-        else if (cardIndex == leftIndex)
+
+        if (cardIndex == leftIndex)
         {
             pos = new Vector2(-sideX, sideY);
             rotZOffset = +sideRotZ;
             scaleMul = sideScaleMultiplier;
+            return;
         }
-        else
+
+        if (cardIndex == rightIndex)
         {
             pos = new Vector2(+sideX, sideY);
             rotZOffset = -sideRotZ;
             scaleMul = sideScaleMultiplier;
+            return;
         }
+
+        // Si hay más de 3 cartas activas, a las “no foco” las dejamos atenuadas y atrás.
+        // Puedes cambiar esto por ocultarlas o apilarlas.
+        pos = new Vector2(0f, sideY - 30f);
+        rotZOffset = 0f;
+        scaleMul = sideScaleMultiplier * 0.90f;
     }
 
     private void RefreshWeaponIconsOverlay()
     {
-        bool anyIcons = false;
-        for (int i = 0; i < 3; i++)
-            if (_icons[i] != null) { anyIcons = true; break; }
-        if (!anyIcons) return;
+        if (icons == null || icons.Length == 0) return;
 
-        for (int i = 0; i < 3; i++)
+        int n = Mathf.Min(icons.Length, cards.Length);
+
+        for (int i = 0; i < n; i++)
         {
-            if (_icons[i] == null) continue;
+            var icon = icons[i];
+            if (icon == null) continue;
 
-            var w = inventory.GetWeapon(i);
+            var w = inventory.GetWeaponInSlot(i);
             if (w != null && w.Icon != null)
             {
-                _icons[i].sprite = w.Icon;
-                SetAlpha(_icons[i], 1f);
+                icon.sprite = w.Icon;
+                SetAlpha(icon, 1f);
             }
             else
             {
-                SetAlpha(_icons[i], 0f);
+                SetAlpha(icon, 0f);
             }
         }
     }
 
     private void RefreshReloadFills()
     {
-        bool anyFills = false;
-        for (int i = 0; i < 3; i++)
-            if (_reloadFills[i] != null) { anyFills = true; break; }
-        if (!anyFills) return;
+        if (reloadFills == null || reloadFills.Length == 0) return;
 
-        for (int i = 0; i < 3; i++)
+        int n = Mathf.Min(reloadFills.Length, cards.Length);
+
+        for (int i = 0; i < n; i++)
         {
-            if (_reloadFills[i] == null) continue;
+            var fill = reloadFills[i];
+            if (fill == null) continue;
 
-            if (_cards[i] == null || !_cards[i].gameObject.activeSelf)
+            if (cards[i] == null || !cards[i].gameObject.activeSelf)
             {
-                SetAlpha(_reloadFills[i], 0f);
+                SetAlpha(fill, 0f);
                 continue;
             }
 
             float t = inventory.GetReloadProgress01(i);
-            _reloadFills[i].fillAmount = Mathf.Clamp01(t);
-            SetAlpha(_reloadFills[i], t > 0f ? 1f : 0f);
+            fill.fillAmount = Mathf.Clamp01(t);
+            SetAlpha(fill, t > 0f ? 1f : 0f);
         }
     }
 
@@ -358,16 +349,17 @@ public class CardsFanHUDController : MonoBehaviour
 
     private void SetAllCardsActive(bool active)
     {
-        for (int i = 0; i < 3; i++)
-            if (_cards[i] != null) _cards[i].gameObject.SetActive(active);
+        if (cards == null) return;
+        for (int i = 0; i < cards.Length; i++)
+            if (cards[i] != null) cards[i].gameObject.SetActive(active);
     }
 
-    private int FindOnlyOccupiedSlot()
+    private int FindOnlyOccupiedSlot(int slotCountUI)
     {
         int found = -1;
-        for (int i = 0; i < 3; i++)
+        for (int i = 0; i < slotCountUI; i++)
         {
-            if (inventory.GetWeapon(i) != null)
+            if (inventory.GetWeaponInSlot(i) != null)
             {
                 if (found != -1) return -1;
                 found = i;
@@ -376,26 +368,59 @@ public class CardsFanHUDController : MonoBehaviour
         return found;
     }
 
-    private int FindFirstOccupiedSlot()
+    private int FindFirstOccupiedSlot(int slotCountUI)
     {
-        for (int i = 0; i < 3; i++)
-            if (inventory.GetWeapon(i) != null) return i;
+        for (int i = 0; i < slotCountUI; i++)
+            if (inventory.GetWeaponInSlot(i) != null) return i;
         return -1;
+    }
+
+    private int FindPrevOccupied(int from)
+    {
+        if (cards == null || cards.Length == 0) return from;
+
+        for (int step = 1; step <= cards.Length; step++)
+        {
+            int i = Mod(from - step, cards.Length);
+            if (inventory.GetWeaponInSlot(i) != null) return i;
+        }
+        return from;
+    }
+
+    private int FindNextOccupied(int from)
+    {
+        if (cards == null || cards.Length == 0) return from;
+
+        for (int step = 1; step <= cards.Length; step++)
+        {
+            int i = Mod(from + step, cards.Length);
+            if (inventory.GetWeaponInSlot(i) != null) return i;
+        }
+        return from;
+    }
+
+    private RectTransform GetCard(int i)
+    {
+        if (cards == null) return null;
+        if (i < 0 || i >= cards.Length) return null;
+        return cards[i];
     }
 
     private void CacheBasePose()
     {
-        _baseAnchoredPos = new Vector2[3];
-        _baseScales = new Vector3[3];
-        _baseRotZ = new float[3];
+        if (cards == null) return;
 
-        for (int i = 0; i < 3; i++)
+        int n = cards.Length;
+        _baseAnchoredPos = new Vector2[n];
+        _baseScales = new Vector3[n];
+        _baseRotZ = new float[n];
+
+        for (int i = 0; i < n; i++)
         {
-            if (_cards[i] == null) continue;
-
-            _baseAnchoredPos[i] = _cards[i].anchoredPosition;
-            _baseScales[i] = _cards[i].localScale;
-            _baseRotZ[i] = _cards[i].localEulerAngles.z;
+            if (cards[i] == null) continue;
+            _baseAnchoredPos[i] = cards[i].anchoredPosition;
+            _baseScales[i] = cards[i].localScale;
+            _baseRotZ[i] = cards[i].localEulerAngles.z;
         }
 
         _basePoseCached = true;
@@ -403,25 +428,23 @@ public class CardsFanHUDController : MonoBehaviour
 
     private void RestoreBasePose()
     {
-        if (!_basePoseCached) return;
+        if (!_basePoseCached || cards == null) return;
 
         _layoutTween?.Kill();
 
-        // Mata tweens que puedan seguir vivos en estos rects
-        for (int i = 0; i < 3; i++)
+        for (int i = 0; i < cards.Length; i++)
         {
-            if (_cards[i] == null) continue;
-            DOTween.Kill(_cards[i], complete: false);
+            if (cards[i] == null) continue;
+            DOTween.Kill(cards[i], complete: false);
         }
 
-        // Restaura valores del editor
-        for (int i = 0; i < 3; i++)
+        for (int i = 0; i < cards.Length; i++)
         {
-            if (_cards[i] == null) continue;
+            if (cards[i] == null) continue;
 
-            _cards[i].anchoredPosition = _baseAnchoredPos[i];
-            _cards[i].localScale = _baseScales[i];
-            _cards[i].localRotation = Quaternion.Euler(0f, 0f, _baseRotZ[i]);
+            cards[i].anchoredPosition = _baseAnchoredPos[i];
+            cards[i].localScale = _baseScales[i];
+            cards[i].localRotation = Quaternion.Euler(0f, 0f, _baseRotZ[i]);
         }
     }
 

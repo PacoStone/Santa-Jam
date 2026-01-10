@@ -10,11 +10,11 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 3838fa04a48f1cf47aa5eeb63031233c, type: 3}
-  m_Name: Hacha
+  m_Name: Estrella
   m_EditorClassIdentifier: Assembly-CSharp::WeaponDa
-  ItemName: Hacha
-  Icon: {fileID: 21300000, guid: 868dadeece5cb5540977d121d9d0d572, type: 3}
-  Description: Here's... Jonny
+  ItemName: Estrella
+  Icon: {fileID: 21300000, guid: 6577b098940150e43a4cb706abd15ef1, type: 3}
+  Description: Mira que bonito el cielo
   Category: 1
   PreviewAnchorPosition: {x: 0, y: 0}
   HandsToHold: 1
@@ -23,15 +23,15 @@ MonoBehaviour:
   MaxReserveAmmo: 90
   BulletsPerMagazine: 30
   ReloadTime: 1.6
-  HitDistance: 5
+  DamagePerBullet: 20
+  HitDistance: 30
   EnvironmentMask:
     serializedVersion: 2
     m_Bits: 64
   BulletPrefab: {fileID: 0}
   BulletSpeed: 60
-  DecalPrefabs:
-  - {fileID: 5683174621224378657, guid: 0e7a3d0dda4480c4eb8dcb56aa448a0f, type: 3}
-  DecalTextureFallback: {fileID: 2800000, guid: 0e03644ee250e0142a11910ce020819a, type: 3}
+  DecalPrefabs: []
+  DecalTextureFallback: {fileID: 0}
   DecalSurfaceOffset: 0.0015
   DecalSize: 0.12
   RandomDecalRotation: 1

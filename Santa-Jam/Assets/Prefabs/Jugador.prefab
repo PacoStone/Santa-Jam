@@ -225,15 +225,28 @@ MonoBehaviour:
   input: {fileID: 5489261728279578566}
   movement: {fileID: 4709438192611645583}
   health: {fileID: 8993577024428965996}
+  weaponInventory: {fileID: 5512389376759977425}
   speedParam: Speed
   groundedParam: Grounded
   sprintParam: Sprinting
   aimParam: Aiming
   deadParam: Dead
+  hurt: Hurt
   speedMode: 0
   deadZone: 0.15
   animatorGroundedMeansAirborne: 1
   flipWithMoveX: 1
+  weaponOverrides:
+  - weapon: {fileID: 11400000, guid: 79fee4b175b1c7146b28ead661e17857, type: 2}
+    overrideController: {fileID: 22100000, guid: 4330237d2dc5af84ca85aa94271742e9, type: 2}
+  - weapon: {fileID: 11400000, guid: 2bf615813f89a6d4ca4c0cce861ddceb, type: 2}
+    overrideController: {fileID: 22100000, guid: c31ce7f392436b44eb752377a9770e23, type: 2}
+  - weapon: {fileID: 11400000, guid: 891f70714723461458fdc52df17fcd12, type: 2}
+    overrideController: {fileID: 22100000, guid: 19ae6c43af3b81d4c8610455002eb901, type: 2}
+  - weapon: {fileID: 11400000, guid: e73e7d7cc24442f41adc7ce011959f95, type: 2}
+    overrideController: {fileID: 22100000, guid: 2e376a64a079e9448abe04b3b2c265c3, type: 2}
+  - weapon: {fileID: 11400000, guid: 1fbdd2fa161fdc0418952bba69a178f5, type: 2}
+    overrideController: {fileID: 22100000, guid: 57e21330f73403742b1454a285cf2cc0, type: 2}
 --- !u!1 &3560384362525329996
 GameObject:
   m_ObjectHideFlags: 0

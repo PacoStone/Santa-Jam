@@ -1,8 +1,16 @@
+using System;
 using UnityEngine;
 
 [DisallowMultipleComponent]
 public class PlayerSpriteAnimatorBridge : MonoBehaviour
 {
+    [Serializable]
+    public struct WeaponAnimatorOverride
+    {
+        public WeaponDa weapon;
+        public AnimatorOverrideController overrideController;
+    }
+
     [Header("References")]
     [SerializeField] private Animator animator;
     [SerializeField] private SpriteRenderer spriteRenderer;
@@ -11,6 +19,7 @@ public class PlayerSpriteAnimatorBridge : MonoBehaviour
     [SerializeField] private InputManager input;
     [SerializeField] private PlayerMovementController movement;
     [SerializeField] private PlayerHealthController health;
+    [SerializeField] private WeaponInventoryController weaponInventory;
 
     [Header("Animator Parameters")]
     [SerializeField] private string speedParam = "Speed";
@@ -22,8 +31,8 @@ public class PlayerSpriteAnimatorBridge : MonoBehaviour
 
     public enum SpeedMode
     {
-        SignedInputY,      // +forward / -back from input (good for simple setups)
-        SignedWorldMotion  // +forward / -back from actual movement (recommended in 3D)
+        SignedInputY,
+        SignedWorldMotion
     }
 
     [Header("Tuning")]
@@ -39,8 +48,14 @@ public class PlayerSpriteAnimatorBridge : MonoBehaviour
     [Header("Sprite Facing")]
     [SerializeField] private bool flipWithMoveX = true;
 
+    [Header("Weapon ? Animator Override")]
+    [Tooltip("Si no hay match, se usa el controller base (el que tenga el Animator al arrancar).")]
+    [SerializeField] private WeaponAnimatorOverride[] weaponOverrides;
+
     private Transform _root;
     private Vector3 _lastRootPos;
+
+    private RuntimeAnimatorController _baseController;
 
     private void Awake()
     {
@@ -50,9 +65,32 @@ public class PlayerSpriteAnimatorBridge : MonoBehaviour
         if (input == null) input = GetComponentInParent<InputManager>();
         if (movement == null) movement = GetComponentInParent<PlayerMovementController>();
         if (health == null) health = GetComponentInParent<PlayerHealthController>();
+        if (weaponInventory == null) weaponInventory = GetComponentInParent<WeaponInventoryController>();
 
         _root = movement != null ? movement.transform : transform;
         _lastRootPos = _root.position;
+
+        if (animator != null)
+            _baseController = animator.runtimeAnimatorController;
+    }
+
+    private void OnEnable()
+    {
+        if (weaponInventory != null)
+            weaponInventory.OnWeaponDataChanged += HandleWeaponChanged;
+    }
+
+    private void OnDisable()
+    {
+        if (weaponInventory != null)
+            weaponInventory.OnWeaponDataChanged -= HandleWeaponChanged;
+    }
+
+    private void Start()
+    {
+        // Aplica override inicial (si empiezas con arma equipada)
+        if (weaponInventory != null)
+            HandleWeaponChanged(weaponInventory.CurrentWeaponData, weaponInventory.CurrentIndex);
     }
 
     private void Update()
@@ -62,10 +100,7 @@ public class PlayerSpriteAnimatorBridge : MonoBehaviour
 
         // 1) Speed (signed)
         float speed = ComputeSignedSpeed();
-        if (Mathf.Abs(speed) < deadZone)
-        {
-            speed = 0f;
-        }
+        if (Mathf.Abs(speed) < deadZone) speed = 0f;
         animator.SetFloat(speedParam, speed);
 
         // 2) Grounded
@@ -77,13 +112,10 @@ public class PlayerSpriteAnimatorBridge : MonoBehaviour
         animator.SetBool(sprintParam, movement.SprintHeld);
         animator.SetBool(aimParam, input.aimHeld);
 
-        // 4) Dead (simple, no reflection)
-        // Si tu PlayerHealthController no expone IsDead, esta línea no compilará.
-        // En ese caso, te digo abajo cómo dejarlo compatible.
-        bool isDead = GetIsDeadSafe();
-        animator.SetBool(deadParam, isDead);
+        // 4) Dead
+        animator.SetBool(deadParam, GetIsDeadSafe());
 
-        // 5) Sprite flip (solo con input X)
+        // 5) Sprite flip
         if (flipWithMoveX && spriteRenderer != null)
         {
             float x = input.move.x;
@@ -92,20 +124,55 @@ public class PlayerSpriteAnimatorBridge : MonoBehaviour
         }
     }
 
+    private void HandleWeaponChanged(WeaponDa weapon, int index)
+    {
+        if (animator == null) return;
+
+        RuntimeAnimatorController target = _baseController;
+
+        if (weapon != null && weaponOverrides != null)
+        {
+            for (int i = 0; i < weaponOverrides.Length; i++)
+            {
+                if (weaponOverrides[i].weapon == weapon && weaponOverrides[i].overrideController != null)
+                {
+                    target = weaponOverrides[i].overrideController;
+                    break;
+                }
+            }
+        }
+
+        ApplyControllerPreservingState(target);
+    }
+
+    private void ApplyControllerPreservingState(RuntimeAnimatorController target)
+    {
+        if (animator.runtimeAnimatorController == target || target == null)
+            return;
+
+        // Captura estado actual para minimizar “saltos”
+        AnimatorStateInfo s0 = animator.GetCurrentAnimatorStateInfo(0);
+        int stateHash = s0.fullPathHash;
+        float normalized = s0.normalizedTime;
+        float t = normalized - Mathf.Floor(normalized); // 0..1
+
+        animator.runtimeAnimatorController = target;
+
+        // Reproduce el mismo estado (si existe en el controller base/override; con override suele existir)
+        animator.Play(stateHash, 0, t);
+        animator.Update(0f); // fuerza evaluación inmediata
+    }
+
     private float ComputeSignedSpeed()
     {
         switch (speedMode)
         {
             case SpeedMode.SignedInputY:
-                {
-                    // Respeta exactamente tu Animator: Speed > 0.1 forward, Speed < -0.1 back
-                    return input.move.y;
-                }
+                return input.move.y;
 
             case SpeedMode.SignedWorldMotion:
             default:
                 {
-                    // Movimiento real proyectado en el forward del jugador (solo en plano XZ)
                     Vector3 delta = _root.position - _lastRootPos;
                     _lastRootPos = _root.position;
 
@@ -117,7 +184,6 @@ public class PlayerSpriteAnimatorBridge : MonoBehaviour
                     fwd.y = 0f;
                     fwd.Normalize();
 
-                    // [-1..1] aprox (según dirección). Esto encaja perfecto con umbrales +/-0.1
                     return Vector3.Dot(planar.normalized, fwd);
                 }
         }
@@ -125,19 +191,20 @@ public class PlayerSpriteAnimatorBridge : MonoBehaviour
 
     private bool GetIsDeadSafe()
     {
-        // Opción 1 (ideal): que tu PlayerHealthController tenga una propiedad pública IsDead.
-        // Si existe, úsala.
-        // Si no existe, devuelve false y no bloquea animaciones.
         if (health == null) return false;
 
-        // Intenta leer "IsDead" si existe, sin reflection pesada (usamos SendMessage? no; esto es simple).
-        // Para mantenerlo “humano” y estable, no infiero por nombres raros.
-        // Si quieres, te lo adapto exactamente a tu PlayerHealthController cuando me pegues su código.
         var type = health.GetType();
         var prop = type.GetProperty("IsDead");
         if (prop != null && prop.PropertyType == typeof(bool))
             return (bool)prop.GetValue(health);
 
         return false;
+    }
+
+    // Opcional: si quieres disparar Hurt desde otros scripts:
+    public void TriggerHurt()
+    {
+        if (animator != null && !string.IsNullOrEmpty(hurt))
+            animator.SetTrigger(hurt);
     }
 }
