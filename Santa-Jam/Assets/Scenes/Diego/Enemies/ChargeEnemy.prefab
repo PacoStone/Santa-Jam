@@ -8,6 +8,18 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 856569423415598581, guid: 3d8643653531b7d46a949ed4f8618e4c, type: 3}
+      propertyPath: m_Color.b
+      value: 0.8867924
+      objectReference: {fileID: 0}
+    - target: {fileID: 856569423415598581, guid: 3d8643653531b7d46a949ed4f8618e4c, type: 3}
+      propertyPath: m_Color.g
+      value: 0.65501577
+      objectReference: {fileID: 0}
+    - target: {fileID: 856569423415598581, guid: 3d8643653531b7d46a949ed4f8618e4c, type: 3}
+      propertyPath: m_Color.r
+      value: 0.25516194
+      objectReference: {fileID: 0}
     - target: {fileID: 2490312864265963313, guid: 3d8643653531b7d46a949ed4f8618e4c, type: 3}
       propertyPath: m_Name
       value: ChargeEnemy
@@ -84,3 +96,6 @@ MonoBehaviour:
   chargeSpeed: 12
   chargeDuration: 1.5
   turnResistance: 0.1
+  damage: 20
+  stunTime: 2
+  chargeCooldown: 3

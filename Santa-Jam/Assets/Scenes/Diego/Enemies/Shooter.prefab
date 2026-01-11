@@ -39,6 +39,18 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 856569423415598581, guid: 3d8643653531b7d46a949ed4f8618e4c, type: 3}
+      propertyPath: m_Color.b
+      value: 0.07756319
+      objectReference: {fileID: 0}
+    - target: {fileID: 856569423415598581, guid: 3d8643653531b7d46a949ed4f8618e4c, type: 3}
+      propertyPath: m_Color.g
+      value: 0.6859668
+      objectReference: {fileID: 0}
+    - target: {fileID: 856569423415598581, guid: 3d8643653531b7d46a949ed4f8618e4c, type: 3}
+      propertyPath: m_Color.r
+      value: 0.7830189
+      objectReference: {fileID: 0}
     - target: {fileID: 2490312864265963313, guid: 3d8643653531b7d46a949ed4f8618e4c, type: 3}
       propertyPath: m_Name
       value: Shooter
@@ -119,10 +131,17 @@ MonoBehaviour:
   player: {fileID: 0}
   approachDistance: 12
   stopDistance: 10
+  repositionRadius: 3
+  avoidRadius: 3
+  repositionTries: 10
+  separationRadius: 2.5
+  separationStrength: 3
   bulletPrefab: {fileID: 2253845041198955118, guid: bd3f1dd26f12a2a4e9e8c7e159de570f, type: 3}
   firePoint: {fileID: 8332141784202223357}
   fireRate: 1
   bulletSpeed: 30
+  minShotsBeforeMove: 2
+  maxShotsBeforeMove: 6
   damage: 10
 --- !u!4 &9107148168149848827 stripped
 Transform:
