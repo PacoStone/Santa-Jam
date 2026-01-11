@@ -233,7 +233,7 @@ public class PlayerAimAndShootController : MonoBehaviour
         if (movement.SprintHeld)
             return false;
 
-        if (movement.JumpPressed)
+        if (movement.IsJumping)
             return false;
 
         return true;
