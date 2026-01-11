@@ -109,4 +109,15 @@ public class LevelLoader : MonoBehaviour
 
         SceneManager.LoadScene(sceneName);
     }
+    public void QuitGame()
+    {
+        Debug.Log("[LevelLoader] QuitGame() llamado.");
+
+#if UNITY_EDITOR
+        // En el editor no se puede cerrar la aplicación
+        UnityEditor.EditorApplication.isPlaying = false;
+#else
+    Application.Quit();
+#endif
+    }
 }
