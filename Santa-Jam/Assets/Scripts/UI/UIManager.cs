@@ -81,6 +81,7 @@ public class UIManager : MonoBehaviour
     [SerializeField] private bool slideUsingLocalPosition = false;
 
     public bool IsPaused { get; private set; }
+    private bool pauseLocked;
 
     private Coroutine _blendRoutine;
     private Coroutine _slideRoutine;
@@ -150,6 +151,8 @@ public class UIManager : MonoBehaviour
 
     private void Update()
     {
+        if (pauseLocked) return;
+
         if (inputManager != null && inputManager.pausePressed)
         {
             TogglePause();
@@ -205,6 +208,59 @@ public class UIManager : MonoBehaviour
             _blendRoutine = StartCoroutine(BlendPauseVolume(paused ? pausedWeight : 0f));
         }
     }
+    public void SetPauseLocked(bool locked)
+    {
+        pauseLocked = locked;
+    }
+
+    /// <summary>
+    /// Entra en un modo UI “modal” (por ejemplo selección de arma).
+    /// Congela el tiempo, cambia action map a UI, muestra cursor y oculta paneles de pausa.
+    /// </summary>
+    public void EnterModalUI(bool freezeTime = true)
+    {
+        // Evita abrir/cerrar pausa mientras está el modal
+        pauseLocked = true;
+
+        // Asegura que el menú de pausa no se vea
+        HideAllPausePanels();
+
+        // Congela juego (recomendado para selección)
+        if (freezeTime)
+            Time.timeScale = 0f;
+
+        // Action Map UI
+        if (playerInput != null)
+            playerInput.SwitchCurrentActionMap(uiMapName);
+
+        // Cursor libre
+        if (unlockCursorOnPause)
+        {
+            Cursor.visible = true;
+            Cursor.lockState = CursorLockMode.None;
+        }
+    }
+
+    /// <summary>
+    /// Sale del modo modal UI y devuelve control al gameplay.
+    /// </summary>
+    public void ExitModalUI(bool resumeTime = true)
+    {
+        if (resumeTime)
+            Time.timeScale = 1f;
+
+        if (playerInput != null)
+            playerInput.SwitchCurrentActionMap(gameplayMapName);
+
+        if (unlockCursorOnPause)
+        {
+            Cursor.visible = false;
+            Cursor.lockState = CursorLockMode.Locked;
+        }
+
+        pauseLocked = false;
+    }
+
 
     private IEnumerator BlendPauseVolume(float target)
     {
