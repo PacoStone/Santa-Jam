@@ -20,7 +20,7 @@ MonoBehaviour:
   HandsToHold: 2
   Automatic: 0
   FireRate: 5
-  MaxReserveAmmo: 32
+  MaxReserveAmmo: 12
   BulletsPerMagazine: 2
   ReloadTime: 2.4
   DamagePerBullet: 20
@@ -33,7 +33,7 @@ MonoBehaviour:
   DecalPrefabs:
   - {fileID: 5683174621224378657, guid: 0e7a3d0dda4480c4eb8dcb56aa448a0f, type: 3}
   DecalTextureFallback: {fileID: 2800000, guid: 0e03644ee250e0142a11910ce020819a, type: 3}
-  DecalSurfaceOffset: 0.01
+  DecalSurfaceOffset: 0.4
   DecalSize: 0.24
   RandomDecalRotation: 1
   DebugSpawnBullet: 1

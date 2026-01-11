@@ -5,12 +5,17 @@ using UnityEngine.InputSystem;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 using UnityEngine.UI;
+using TMPro;
 
 public class UIManager : MonoBehaviour
 {
     [Header("Refs (Input / Player)")]
     [SerializeField] private InputManager inputManager;     // Tu InputManager
     [SerializeField] private PlayerInput playerInput;       // PlayerInput del jugador
+
+    [Header("HUD - Money (TMP)")]
+    [Tooltip("Arrastra aquí el TextMeshProUGUI 'money' de tu Canvas.")]
+    [SerializeField] private TMP_Text moneyText;
 
     [Header("Pause UI Roots")]
     [SerializeField] private GameObject pauseMenuRoot;      // Root general del menú pausa
@@ -94,6 +99,9 @@ public class UIManager : MonoBehaviour
 
     private bool _inOptions = false;
 
+    // --------------------------
+    //  UNITY LIFECYCLE
+    // --------------------------
     private void Awake()
     {
         // UI estado inicial
@@ -131,6 +139,17 @@ public class UIManager : MonoBehaviour
             volumeSlider.onValueChanged.AddListener(SetVolume01);
     }
 
+    private void OnEnable()
+    {
+        BindScoreManager();
+        RefreshMoneyTextInstant();
+    }
+
+    private void OnDisable()
+    {
+        UnbindScoreManager();
+    }
+
     private void Start()
     {
         // Sincroniza UI con estado actual
@@ -147,6 +166,9 @@ public class UIManager : MonoBehaviour
         // Aplica inmediatamente valores iniciales a settings
         if (brightnessSlider != null) SetBrightness01(brightnessSlider.value);
         if (volumeSlider != null) SetVolume01(volumeSlider.value);
+
+        // Asegura HUD correcto al arrancar
+        RefreshMoneyTextInstant();
     }
 
     private void Update()
@@ -157,6 +179,38 @@ public class UIManager : MonoBehaviour
         {
             TogglePause();
         }
+    }
+
+    // --------------------------
+    //  SCORE UI
+    // --------------------------
+    private void BindScoreManager()
+    {
+        if (ScoreManager.Instance == null) return;
+
+        // Evita doble suscripción
+        ScoreManager.Instance.OnScoreChanged -= HandleScoreChanged;
+        ScoreManager.Instance.OnScoreChanged += HandleScoreChanged;
+    }
+
+    private void UnbindScoreManager()
+    {
+        if (ScoreManager.Instance == null) return;
+        ScoreManager.Instance.OnScoreChanged -= HandleScoreChanged;
+    }
+
+    private void HandleScoreChanged(int cents, string formatted)
+    {
+        if (moneyText == null) return;
+        moneyText.text = formatted;
+    }
+
+    private void RefreshMoneyTextInstant()
+    {
+        if (moneyText == null) return;
+
+        if (ScoreManager.Instance != null)
+            moneyText.text = ScoreManager.Instance.GetFormattedScore();
     }
 
     // --------------------------
@@ -204,36 +258,28 @@ public class UIManager : MonoBehaviour
         // Blur (weight del volume URP)
         if (pauseVolume != null)
         {
-            if (_blendRoutine != null) StopCoroutine(_blendRoutine); // evita "routine is null"
+            if (_blendRoutine != null) StopCoroutine(_blendRoutine);
             _blendRoutine = StartCoroutine(BlendPauseVolume(paused ? pausedWeight : 0f));
         }
     }
+
     public void SetPauseLocked(bool locked)
     {
         pauseLocked = locked;
     }
 
-    /// <summary>
-    /// Entra en un modo UI “modal” (por ejemplo selección de arma).
-    /// Congela el tiempo, cambia action map a UI, muestra cursor y oculta paneles de pausa.
-    /// </summary>
     public void EnterModalUI(bool freezeTime = true)
     {
-        // Evita abrir/cerrar pausa mientras está el modal
         pauseLocked = true;
 
-        // Asegura que el menú de pausa no se vea
         HideAllPausePanels();
 
-        // Congela juego (recomendado para selección)
         if (freezeTime)
             Time.timeScale = 0f;
 
-        // Action Map UI
         if (playerInput != null)
             playerInput.SwitchCurrentActionMap(uiMapName);
 
-        // Cursor libre
         if (unlockCursorOnPause)
         {
             Cursor.visible = true;
@@ -241,9 +287,6 @@ public class UIManager : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// Sale del modo modal UI y devuelve control al gameplay.
-    /// </summary>
     public void ExitModalUI(bool resumeTime = true)
     {
         if (resumeTime)
@@ -260,7 +303,6 @@ public class UIManager : MonoBehaviour
 
         pauseLocked = false;
     }
-
 
     private IEnumerator BlendPauseVolume(float target)
     {
@@ -292,41 +334,23 @@ public class UIManager : MonoBehaviour
 
     private void ShowBasicMenuInstant()
     {
-        // Detén animación de slide si está activa
         if (_slideRoutine != null) StopCoroutine(_slideRoutine);
         _slideRoutine = null;
 
-        // Activos correctos
         if (basicButtonsRoot != null) basicButtonsRoot.SetActive(true);
         if (optionsRoot != null) optionsRoot.SetActive(false);
 
-        // Vuelve a posiciones base (deja todo como estaba antes)
         RestoreBaseSlidePositions();
-    }
-
-    private void ShowOptionsMenuInstant()
-    {
-        if (_slideRoutine != null) StopCoroutine(_slideRoutine);
-        _slideRoutine = null;
-
-        if (basicButtonsRoot != null) basicButtonsRoot.SetActive(false);
-        if (optionsRoot != null) optionsRoot.SetActive(true);
-
-        // Coloca posiciones ya desplazadas
-        ApplyOptionsSlidePositions();
     }
 
     // --------------------------
     //  BUTTON CALLBACKS
     // --------------------------
-
-    // Botón: Continuar
     public void OnContinueClicked()
     {
         SetPaused(false);
     }
 
-    // Botón: Opciones
     public void OnOptionsClicked()
     {
         if (!IsPaused) return;
@@ -334,7 +358,6 @@ public class UIManager : MonoBehaviour
 
         _inOptions = true;
 
-        // Si quieres ver el slide, ambos activos durante la transición
         if (keepBothGroupsActiveDuringSlide)
         {
             if (basicButtonsRoot != null) basicButtonsRoot.SetActive(true);
@@ -348,7 +371,6 @@ public class UIManager : MonoBehaviour
         StartOptionsSlide(toOptions: true);
     }
 
-    // Botón: Atrás (Opciones)
     public void OnBackFromOptionsClicked()
     {
         if (!IsPaused) return;
@@ -356,7 +378,6 @@ public class UIManager : MonoBehaviour
 
         _inOptions = false;
 
-        // Para volver, también conviene que ambos estén activos durante el slide
         if (keepBothGroupsActiveDuringSlide)
         {
             if (basicButtonsRoot != null) basicButtonsRoot.SetActive(true);
@@ -378,7 +399,6 @@ public class UIManager : MonoBehaviour
         Screen.fullScreen = isFullscreen;
     }
 
-    // Slider: Brillo (0..1) -> URP Color Adjustments / Post Exposure
     public void SetBrightness01(float v01)
     {
         if (_colorAdjustments == null)
@@ -394,7 +414,6 @@ public class UIManager : MonoBehaviour
         _colorAdjustments.postExposure.value = exposure;
     }
 
-    // Slider: Volumen (0..1)
     public void SetVolume01(float v01)
     {
         v01 = Mathf.Clamp01(v01);
@@ -416,14 +435,11 @@ public class UIManager : MonoBehaviour
     // --------------------------
     //  SLIDE LOGIC (OPTIONS)
     // --------------------------
-
     private void CacheBaseSlidePositions()
     {
-        // Guardamos base del panel options
         if (optionsPanel != null)
             _optionsBasePos = GetRTPos(optionsPanel);
 
-        // Guardamos base de los “otros 4”
         if (otherRootsToShift != null && otherRootsToShift.Length > 0)
         {
             _othersBasePos = new Vector3[otherRootsToShift.Length];
@@ -450,24 +466,6 @@ public class UIManager : MonoBehaviour
         }
     }
 
-    private void ApplyOptionsSlidePositions()
-    {
-        // options hacia la derecha
-        if (optionsPanel != null)
-        {
-            Vector3 p = _optionsBasePos + new Vector3(optionsSlideX, 0f, 0f);
-            SetRTPos(optionsPanel, p);
-        }
-
-        // otros 4 se desplazan a la vez
-        for (int i = 0; i < otherRootsToShift.Length; i++)
-        {
-            if (otherRootsToShift[i] == null) continue;
-            Vector3 p = _othersBasePos[i] + new Vector3(othersSlideX, 0f, 0f);
-            SetRTPos(otherRootsToShift[i], p);
-        }
-    }
-
     private void StartOptionsSlide(bool toOptions)
     {
         if (_slideRoutine != null) StopCoroutine(_slideRoutine);
@@ -479,20 +477,17 @@ public class UIManager : MonoBehaviour
         float d = Mathf.Max(0.0001f, slideSeconds);
         float t = 0f;
 
-        // Posiciones de inicio
         Vector3 optionsFrom = optionsPanel != null ? GetRTPos(optionsPanel) : Vector3.zero;
+
         Vector3[] othersFrom = new Vector3[otherRootsToShift.Length];
         for (int i = 0; i < otherRootsToShift.Length; i++)
             othersFrom[i] = otherRootsToShift[i] != null ? GetRTPos(otherRootsToShift[i]) : Vector3.zero;
 
-        // Posiciones objetivo
         Vector3 optionsTo = _optionsBasePos + (toOptions ? new Vector3(optionsSlideX, 0f, 0f) : Vector3.zero);
 
         Vector3[] othersTo = new Vector3[otherRootsToShift.Length];
         for (int i = 0; i < otherRootsToShift.Length; i++)
-        {
             othersTo[i] = _othersBasePos[i] + (toOptions ? new Vector3(othersSlideX, 0f, 0f) : Vector3.zero);
-        }
 
         while (t < d)
         {
@@ -512,7 +507,6 @@ public class UIManager : MonoBehaviour
             yield return null;
         }
 
-        // Snap final
         if (optionsPanel != null) SetRTPos(optionsPanel, optionsTo);
         for (int i = 0; i < otherRootsToShift.Length; i++)
         {
@@ -520,7 +514,6 @@ public class UIManager : MonoBehaviour
             SetRTPos(otherRootsToShift[i], othersTo[i]);
         }
 
-        // Al terminar, dejamos activos solo los grupos correctos
         if (toOptions)
         {
             if (basicButtonsRoot != null) basicButtonsRoot.SetActive(false);

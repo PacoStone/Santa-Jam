@@ -12,17 +12,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3838fa04a48f1cf47aa5eeb63031233c, type: 3}
   m_Name: Ermitano
   m_EditorClassIdentifier: Assembly-CSharp::WeaponDa
-  ItemName: 
+  ItemName: "Ermita\xF1o"
   Icon: {fileID: -2130100275, guid: 8a8cda96cf1fcf045b152d35c97222bb, type: 3}
-  Description: 
+  Description: Monje*
   Category: 1
   PreviewAnchorPosition: {x: 0, y: 0}
   HandsToHold: 1
   Automatic: 0
   FireRate: 10
-  MaxReserveAmmo: 90
-  BulletsPerMagazine: 30
-  ReloadTime: 1.6
+  MaxReserveAmmo: 16
+  BulletsPerMagazine: 8
+  ReloadTime: 2.1
   DamagePerBullet: 20
   HitDistance: 50
   EnvironmentMask:
@@ -31,7 +31,7 @@ MonoBehaviour:
   BulletPrefab: {fileID: 0}
   BulletSpeed: 60
   DecalPrefabs: []
-  DecalTextureFallback: {fileID: 0}
+  DecalTextureFallback: {fileID: 2800000, guid: 0e03644ee250e0142a11910ce020819a, type: 3}
   DecalSurfaceOffset: 0.0015
   DecalSize: 0.12
   RandomDecalRotation: 1

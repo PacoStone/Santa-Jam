@@ -228,14 +228,12 @@ MonoBehaviour:
   weaponInventory: {fileID: 5512389376759977425}
   speedParam: Speed
   groundedParam: Grounded
+  jumpingParam: Jumping
   sprintParam: Sprinting
   aimParam: Aiming
+  rechargeParam: Recharging
   deadParam: Dead
-  hurt: Hurt
-  speedMode: 0
-  deadZone: 0.15
-  animatorGroundedMeansAirborne: 1
-  flipWithMoveX: 1
+  hurtParam: Hurt
   weaponOverrides:
   - weapon: {fileID: 11400000, guid: 79fee4b175b1c7146b28ead661e17857, type: 2}
     overrideController: {fileID: 22100000, guid: 4330237d2dc5af84ca85aa94271742e9, type: 2}
@@ -247,6 +245,7 @@ MonoBehaviour:
     overrideController: {fileID: 22100000, guid: 2e376a64a079e9448abe04b3b2c265c3, type: 2}
   - weapon: {fileID: 11400000, guid: 1fbdd2fa161fdc0418952bba69a178f5, type: 2}
     overrideController: {fileID: 22100000, guid: 57e21330f73403742b1454a285cf2cc0, type: 2}
+  deadZone: 0.15
 --- !u!1 &3560384362525329996
 GameObject:
   m_ObjectHideFlags: 0
@@ -544,8 +543,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 871e709e6a53cc046b9136c65f16b2d1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::WeaponRuntime
-  weaponData: {fileID: 11400000, guid: 79fee4b175b1c7146b28ead661e17857, type: 2}
-  currentMagazine: 10
+  weaponData: {fileID: 11400000, guid: 1fbdd2fa161fdc0418952bba69a178f5, type: 2}
+  currentMagazine: 0
   currentReserveAmmo: 0
   reloading: 0
 --- !u!1 &8465994966123839503
@@ -865,6 +864,8 @@ MonoBehaviour:
   drawShootRay: 1
   rayDrawDuration: 4
   weaponRuntime: {fileID: 2640852686676594073}
+  shootToReticleWhileAiming: 1
+  applyAimOffsetWhileAimingToReticle: 0
 --- !u!114 &2436505795765113737
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -939,7 +940,8 @@ MonoBehaviour:
   saturationAtZeroHealth: -100
   vignetteSmoothnessAtZeroHealth: 1
   postLerpSpeed: 8
-  disableOnDeath: []
+  disableOnDeath:
+  - {fileID: 5489261728279578566}
 --- !u!114 &5512389376759977425
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -953,8 +955,17 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::WeaponInventoryController
   weaponRuntime: {fileID: 2640852686676594073}
-  slots: []
-  currentIndex: 0
+  slots:
+  - weapon: {fileID: 0}
+    mag: 0
+    reserve: 0
+  - weapon: {fileID: 0}
+    mag: 0
+    reserve: 0
+  - weapon: {fileID: 0}
+    mag: 0
+    reserve: 0
+  startIndex: 0
 --- !u!1 &8672117467956525024
 GameObject:
   m_ObjectHideFlags: 0

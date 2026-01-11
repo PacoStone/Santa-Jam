@@ -18,21 +18,21 @@ MonoBehaviour:
   Category: 1
   PreviewAnchorPosition: {x: 0, y: 0}
   HandsToHold: 0
-  Automatic: 0
+  Automatic: 1
   FireRate: 10
-  MaxReserveAmmo: 90
+  MaxReserveAmmo: 60
   BulletsPerMagazine: 30
   ReloadTime: 1.6
   DamagePerBullet: 20
   HitDistance: 30
   EnvironmentMask:
     serializedVersion: 2
-    m_Bits: 0
+    m_Bits: 200
   BulletPrefab: {fileID: 0}
   BulletSpeed: 60
   DecalPrefabs: []
   DecalTextureFallback: {fileID: 0}
-  DecalSurfaceOffset: 0.0015
+  DecalSurfaceOffset: 0.02
   DecalSize: 0.12
   RandomDecalRotation: 1
   DebugSpawnBullet: 1

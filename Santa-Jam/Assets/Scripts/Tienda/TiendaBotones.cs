@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
@@ -31,12 +32,21 @@ public class TiendaBotones : MonoBehaviour
     [Header("Buy")]
     [SerializeField] private Button buyButton;
 
+    [Header("Not enough money FX")]
+    [Tooltip("Imagen roja (UI) con alpha normalmente en 0. Se hará flash si no hay dinero.")]
+    [SerializeField] private Image notEnoughMoneyFlashImage;
+    [Tooltip("Alpha a aplicar durante el flash. 110 equivale a ~0.43 (110/255).")]
+    [Range(0f, 1f)]
+    [SerializeField] private float flashAlpha = 110f / 255f;
+    [SerializeField] private float flashSeconds = 1f;
+
     [Header("Replace HUD (CambiaArmas)")]
     [Tooltip("Arrastra aquí el objeto CambiaArmas (con CambiaArmasHUDController).")]
     [SerializeField] private CambiaArmasHUDController cambiaArmasHUD;
 
     private readonly List<Vector3> _pulseBaseScales = new();
     private int _currentIndex = -1;
+    private Coroutine _flashRoutine;
 
     private void Awake()
     {
@@ -48,6 +58,9 @@ public class TiendaBotones : MonoBehaviour
         if (buyButton != null)
             buyButton.onClick.AddListener(HandleBuyClicked);
 
+        // Asegura flash en alpha 0 al inicio
+        SetFlashAlpha(0f);
+
         // Registro de WeaponCard + asignación de índice (IMPORTANTE)
         for (int i = 0; i < weaponCards.Count; i++)
         {
@@ -58,7 +71,6 @@ public class TiendaBotones : MonoBehaviour
             if (card == null)
                 card = entry.cardImage.gameObject.AddComponent<WeaponCard>();
 
-            // Esto permite que al hover/click la carta llame a OnCardHovered(i)
             card.Initialize(this, i);
         }
     }
@@ -139,6 +151,21 @@ public class TiendaBotones : MonoBehaviour
             return;
         }
 
+        if (ScoreManager.Instance == null)
+        {
+            Debug.LogError("[TiendaBotones] No existe ScoreManager activo.");
+            return;
+        }
+
+        int costCents = PriceToCents(entry.price);
+
+        // Si ya sabemos que NO llega, feedback visual y salimos
+        if (ScoreManager.Instance.GetCents() < costCents)
+        {
+            TriggerNotEnoughMoneyFlash();
+            return;
+        }
+
         if (cambiaArmasHUD == null)
         {
 #if UNITY_2023_1_OR_NEWER
@@ -156,8 +183,21 @@ public class TiendaBotones : MonoBehaviour
 
         WeaponDa[] currentLoadout = GameManager.Instance.GetCurrentLoadoutWeaponDas();
 
+        // Cobrar SOLO cuando el jugador elige el slot
         cambiaArmasHUD.OpenForShop(currentLoadout, entry.weaponData, (slotIndex) =>
         {
+            if (ScoreManager.Instance == null)
+                return;
+
+            int finalCost = PriceToCents(entry.price);
+
+            // Vuelve a comprobar por si cambió el dinero por algún motivo
+            if (!ScoreManager.Instance.TrySpendCents(finalCost))
+            {
+                TriggerNotEnoughMoneyFlash();
+                return;
+            }
+
             GameManager.Instance.ReplacePersistentWeaponSlot(
                 slotIndex,
                 entry.weaponData,
@@ -204,6 +244,50 @@ public class TiendaBotones : MonoBehaviour
 
         if (selectedPriceText != null)
             selectedPriceText.text = $"{entry.price:0}€";
+    }
+
+    private int PriceToCents(float euros)
+    {
+        // Evita errores de float (por ejemplo 19.999998)
+        return Mathf.Max(0, Mathf.RoundToInt(euros * 100f));
+    }
+
+    private void TriggerNotEnoughMoneyFlash()
+    {
+        if (notEnoughMoneyFlashImage == null)
+            return;
+
+        if (_flashRoutine != null)
+            StopCoroutine(_flashRoutine);
+
+        _flashRoutine = StartCoroutine(CoFlashNotEnoughMoney());
+    }
+
+    private IEnumerator CoFlashNotEnoughMoney()
+    {
+        SetFlashAlpha(flashAlpha);
+
+        float t = 0f;
+        float d = Mathf.Max(0.01f, flashSeconds);
+
+        // Unscaled para que funcione aunque haya Time.timeScale=0 en UI/pausa
+        while (t < d)
+        {
+            t += Time.unscaledDeltaTime;
+            yield return null;
+        }
+
+        SetFlashAlpha(0f);
+        _flashRoutine = null;
+    }
+
+    private void SetFlashAlpha(float a)
+    {
+        if (notEnoughMoneyFlashImage == null) return;
+
+        Color c = notEnoughMoneyFlashImage.color;
+        c.a = Mathf.Clamp01(a);
+        notEnoughMoneyFlashImage.color = c;
     }
 
     [Serializable]
