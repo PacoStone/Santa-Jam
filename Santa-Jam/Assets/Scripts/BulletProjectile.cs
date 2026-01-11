@@ -111,11 +111,13 @@ public class BulletProjectile : MonoBehaviour
 
     private void OnCollisionEnter(Collision collision)
     {
-        if (!initialized)
-            return;
 
-        if (((1 << collision.gameObject.layer) & environmentMask.value) == 0)
-            return;
+
+        //if (((1 << collision.gameObject.layer) & environmentMask.value) == 0)
+        //    return;
+
+        ApplyDamage(collision.collider);
+
 
         ContactPoint cp = collision.GetContact(0);
 
@@ -123,7 +125,7 @@ public class BulletProjectile : MonoBehaviour
         hit.point = cp.point;
         hit.normal = cp.normal;
 
-        OnHit(hit);
+        //OnHit(hit);
     }
 
     private void OnHit(RaycastHit hit)
@@ -138,6 +140,9 @@ public class BulletProjectile : MonoBehaviour
     // Aplica daño al objetivo impactado
     private void ApplyDamage(Collider col)
     {
+
+        Debug.Log("Bullet hit: " + col.name);
+
         if (col == null) return;
 
         // Daño a enemigos
