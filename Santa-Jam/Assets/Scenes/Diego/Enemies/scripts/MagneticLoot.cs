@@ -23,9 +23,9 @@ public class MagneticLoot : MonoBehaviour
 
     void Start()
     {
-        GameObject p = GameObject.FindGameObjectWithTag("Player");
-        if (p != null)
-            player = p.transform;
+        CharacterController pc = FindAnyObjectByType<CharacterController>();
+        if (pc != null)
+            player = pc.transform;
     }
 
     void Update()

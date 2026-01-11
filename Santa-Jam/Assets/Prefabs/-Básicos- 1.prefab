@@ -151,6 +151,61 @@ MonoBehaviour:
   - {fileID: 0}
   - {fileID: 0}
   - {fileID: 0}
+--- !u!1 &713529445153387299
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 8171590162936176311}
+  - component: {fileID: 4362928069967547635}
+  m_Layer: 0
+  m_Name: WaveSpawner
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &8171590162936176311
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 713529445153387299}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 6670032333692042244}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &4362928069967547635
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 713529445153387299}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 21b91bacb312502459f9cff94d4d31ca, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::EnemyWaveSpawner
+  enemyPrefabs:
+  - {fileID: 713529445153387299}
+  - {fileID: 1929634041018246026, guid: 212b710c17f3d394ab5ca617a7ef4918, type: 3}
+  - {fileID: 3700324895565654767, guid: 8481b233e8be15544b587358baa290d4, type: 3}
+  - {fileID: 1868850240135479844, guid: d69ccb227474adc44850bbccf5930381, type: 3}
+  - {fileID: 3681836404848665930, guid: 91eafc56d2adee94a96e71a0d36f1cb8, type: 3}
+  - {fileID: 2490312864265963313, guid: 3d8643653531b7d46a949ed4f8618e4c, type: 3}
+  enemiesToSpawn: 10
+  player: {fileID: 0}
+  spawnRadius: 30
+  minDistanceFromPlayer: 10
 --- !u!1 &2171537990390287728
 GameObject:
   m_ObjectHideFlags: 0
@@ -434,6 +489,7 @@ Transform:
   - {fileID: 4484728449039092316}
   - {fileID: 2699901328101364241}
   - {fileID: 5410371509526753263}
+  - {fileID: 8171590162936176311}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &6804248244748414740
