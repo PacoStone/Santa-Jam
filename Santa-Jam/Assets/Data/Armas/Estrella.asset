@@ -27,7 +27,7 @@ MonoBehaviour:
   HitDistance: 30
   EnvironmentMask:
     serializedVersion: 2
-    m_Bits: 64
+    m_Bits: 200
   BulletPrefab: {fileID: 0}
   BulletSpeed: 60
   DecalPrefabs: []

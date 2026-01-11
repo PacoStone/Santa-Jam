@@ -113,6 +113,13 @@ public class PlayerAimAndShootController : MonoBehaviour
     [Header("Weapon Runtime")]
     [SerializeField] private WeaponRuntime weaponRuntime;
 
+    [Header("Shoot - Aiming To Reticle (NEW)")]
+    [Tooltip("Si está activado, cuando estás en Aiming la dirección se calcula para que el disparo vaya al punto de la retícula (camera ray -> target point -> direction desde el muzzle).")]
+    [SerializeField] private bool shootToReticleWhileAiming = true;
+
+    [Tooltip("Normalmente debe ser false para clavar la retícula. Actívalo solo si quieres mantener un offset incluso al apuntar.")]
+    [SerializeField] private bool applyAimOffsetWhileAimingToReticle = false;
+
     private InputManager input;
     private PlayerMovementController movement;
     private CinemachineThirdPersonFollow thirdPersonFollow;
@@ -495,7 +502,28 @@ public class PlayerAimAndShootController : MonoBehaviour
 
         Vector3 origin = activeMuzzle.position;
 
-        Vector3 direction = GetCameraCenterDirectionWithOffset(aimingNow);
+        // NUEVO: en Aiming, calculamos un punto objetivo a partir de la retícula (ray desde cámara),
+        // y luego disparamos DESDE el muzzle hacia ese punto (soluciona el parallax y respeta el eje Y).
+        Vector3 desiredPoint = Vector3.zero;
+        Vector3 direction;
+
+        if (aimingNow && shootToReticleWhileAiming)
+        {
+            desiredPoint = GetDesiredAimPointFromReticle(activeHitDistance, activeMask);
+            direction = (desiredPoint - origin).normalized;
+
+            if (applyAimOffsetWhileAimingToReticle)
+            {
+                Quaternion angleOffset = Quaternion.Euler(aimAngleOffset.y, aimAngleOffset.x, 0f);
+                direction = (angleOffset * direction).normalized;
+                desiredPoint = origin + direction * activeHitDistance;
+            }
+        }
+        else
+        {
+            direction = GetCameraCenterDirectionWithOffset(aimingNow);
+            desiredPoint = origin + direction * activeHitDistance;
+        }
         if (direction.sqrMagnitude < 0.0001f)
             return;
 
@@ -506,8 +534,17 @@ public class PlayerAimAndShootController : MonoBehaviour
             Debug.DrawRay(origin, direction * Mathf.Max(1f, activeHitDistance), Color.yellow, rayDrawDuration);
         }
 
-        Vector3 hitPoint = origin + direction * activeHitDistance;
-        bool hasHit = Physics.Raycast(origin, direction, out RaycastHit hit, activeHitDistance, activeMask);
+        float rayDistance = activeHitDistance;
+
+        // Si estamos usando retícula, el punto deseado puede estar más cerca que HitDistance (o viceversa).
+        // Usamos la distancia al punto deseado para el raycast desde el muzzle (colisiones reales desde el arma).
+        if (aimingNow && shootToReticleWhileAiming)
+        {
+            rayDistance = Mathf.Clamp(Vector3.Distance(origin, desiredPoint), 0.1f, activeHitDistance);
+        }
+
+        Vector3 hitPoint = (aimingNow && shootToReticleWhileAiming) ? desiredPoint : (origin + direction * activeHitDistance);
+        bool hasHit = Physics.Raycast(origin, direction, out RaycastHit hit, rayDistance, activeMask, QueryTriggerInteraction.Ignore);
 
         if (hasHit)
         {
@@ -525,7 +562,7 @@ public class PlayerAimAndShootController : MonoBehaviour
         BulletProjectile bullet = bulletObj.GetComponent<BulletProjectile>();
         if (bullet != null)
         {
-            int bulletDamage = (data != null) ? data.DamagePerBullet : 1; // Usa el daño del arma si está disponible, si no, usa 1 por defecto.
+            int bulletDamage = (data != null) ? data.DamagePerBullet : 1;
             bullet.Init(direction, activeSpeed, activeHitDistance, activeMask, bulletHoleDecalPrefab, impactParticlesPrefab,
                 decalOffset, decalScaleRange, decalLifeTime, particlesLifeTime, drawShootRay, rayDrawDuration, bulletDamage);
 
@@ -578,6 +615,44 @@ public class PlayerAimAndShootController : MonoBehaviour
         Quaternion angleOffset = Quaternion.Euler(activeOffset.y, activeOffset.x, 0f);
 
         return (angleOffset * baseDir).normalized;
+    }
+
+    // NEW: obtiene el punto al que "mira" la retícula, haciendo un ray desde la cámara.
+    // Luego el disparo real se hace desde el muzzle hacia este punto (en HandleShoot).
+    private Vector3 GetDesiredAimPointFromReticle(float maxDistance, LayerMask mask)
+    {
+        if (mainCamera == null)
+            return (cameraTransform != null ? cameraTransform.position + cameraTransform.forward * maxDistance : transform.position + transform.forward * maxDistance);
+
+        Ray r;
+        if (!TryGetReticleRay(out r))
+        {
+            // Fallback: centro de pantalla
+            r = mainCamera.ViewportPointToRay(new Vector3(0.5f, 0.5f, 0f));
+        }
+
+        if (Physics.Raycast(r, out RaycastHit hit, maxDistance, mask, QueryTriggerInteraction.Ignore))
+        {
+            return hit.point;
+        }
+
+        return r.origin + r.direction * maxDistance;
+    }
+
+    private bool TryGetReticleRay(out Ray ray)
+    {
+        ray = default;
+
+        if (mainCamera == null)
+            return false;
+
+        if (hipFireReticle == null)
+            return false;
+
+        // Funciona en Screen Space - Overlay y también con Canvas Camera.
+        Vector2 screenPoint = RectTransformUtility.WorldToScreenPoint(null, hipFireReticle.position);
+        ray = mainCamera.ScreenPointToRay(screenPoint);
+        return true;
     }
 
     private void SpawnTracer(Vector3 start, Vector3 end)

@@ -119,6 +119,11 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
+--- !u!4 &10229366 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 4057677869631342374, guid: a2cb04db29b61c54e8544264f2aef16a, type: 3}
+  m_PrefabInstance: {fileID: 7845450446392055552}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &281740904
 GameObject:
   m_ObjectHideFlags: 0
@@ -833,6 +838,11 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 667884602}
   m_CullTransparentMesh: 1
+--- !u!4 &771514168 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 498003594886606245, guid: a2cb04db29b61c54e8544264f2aef16a, type: 3}
+  m_PrefabInstance: {fileID: 7845450446392055552}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &817830012
 GameObject:
   m_ObjectHideFlags: 0
@@ -3727,17 +3737,45 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 2103015862}
     - target: {fileID: 6975554092631900339, guid: a2cb04db29b61c54e8544264f2aef16a, type: 3}
+      propertyPath: volume
+      value: 
+      objectReference: {fileID: 832575518}
+    - target: {fileID: 6975554092631900339, guid: a2cb04db29b61c54e8544264f2aef16a, type: 3}
+      propertyPath: animator
+      value: 
+      objectReference: {fileID: 1079730982}
+    - target: {fileID: 6975554092631900339, guid: a2cb04db29b61c54e8544264f2aef16a, type: 3}
+      propertyPath: crosshair
+      value: 
+      objectReference: {fileID: 2050257537}
+    - target: {fileID: 6975554092631900339, guid: a2cb04db29b61c54e8544264f2aef16a, type: 3}
       propertyPath: mainCamera
       value: 
       objectReference: {fileID: 281740908}
+    - target: {fileID: 6975554092631900339, guid: a2cb04db29b61c54e8544264f2aef16a, type: 3}
+      propertyPath: muzzleLeft
+      value: 
+      objectReference: {fileID: 10229366}
+    - target: {fileID: 6975554092631900339, guid: a2cb04db29b61c54e8544264f2aef16a, type: 3}
+      propertyPath: muzzleRight
+      value: 
+      objectReference: {fileID: 771514168}
     - target: {fileID: 6975554092631900339, guid: a2cb04db29b61c54e8544264f2aef16a, type: 3}
       propertyPath: globalVolume
       value: 
       objectReference: {fileID: 832575518}
     - target: {fileID: 6975554092631900339, guid: a2cb04db29b61c54e8544264f2aef16a, type: 3}
+      propertyPath: impactPrefab
+      value: 
+      objectReference: {fileID: 3762537195538468364, guid: 39c821cf613cfa94b807e5c96863f378, type: 3}
+    - target: {fileID: 6975554092631900339, guid: a2cb04db29b61c54e8544264f2aef16a, type: 3}
       propertyPath: hipFireReticle
       value: 
       objectReference: {fileID: 667884603}
+    - target: {fileID: 6975554092631900339, guid: a2cb04db29b61c54e8544264f2aef16a, type: 3}
+      propertyPath: aimReticleGroup
+      value: 
+      objectReference: {fileID: 1540559298}
     - target: {fileID: 6975554092631900339, guid: a2cb04db29b61c54e8544264f2aef16a, type: 3}
       propertyPath: cameraTransform
       value: 
