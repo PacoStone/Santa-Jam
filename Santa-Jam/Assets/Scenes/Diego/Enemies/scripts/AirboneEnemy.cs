@@ -48,6 +48,10 @@ public class AirboneEnemy : MonoBehaviour
 
     void Start()
     {
+        CharacterController pc = FindAnyObjectByType<CharacterController>();
+        if (pc != null)
+            player = pc.transform;
+
         if (player != null)
         {
             Vector3 dir = transform.position - player.position;

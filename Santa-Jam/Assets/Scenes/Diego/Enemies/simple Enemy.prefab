@@ -16,6 +16,7 @@ GameObject:
   - component: {fileID: 4735109460964066226}
   - component: {fileID: 3708162380242748884}
   - component: {fileID: 1884997557658313302}
+  - component: {fileID: 2022099170903255232}
   m_Layer: 0
   m_Name: simple Enemy
   m_TagString: Enemy
@@ -185,3 +186,16 @@ MonoBehaviour:
   maxLoot: 25
   spawnForce: 6
   upwardForce: 2
+--- !u!114 &2022099170903255232
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2490312864265963313}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0761c6a783e7c9843bdc441ea54cd967, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::EnemyDeathNotifier
+  spawner: {fileID: 0}

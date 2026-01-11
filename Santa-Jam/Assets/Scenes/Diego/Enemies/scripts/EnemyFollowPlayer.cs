@@ -14,6 +14,10 @@ public class EnemyFollowAndAttack : MonoBehaviour
 
     void Start()
     {
+        CharacterController pc = FindAnyObjectByType<CharacterController>();
+        if (pc != null)
+            player = pc.transform;
+
         agent = GetComponent<NavMeshAgent>();
     }
 

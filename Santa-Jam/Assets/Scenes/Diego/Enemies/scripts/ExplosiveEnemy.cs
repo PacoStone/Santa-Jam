@@ -36,6 +36,9 @@ public class EnemyExplosive : MonoBehaviour
 
         if (agent != null)
             agent.speed = baseSpeed;
+        CharacterController pc = FindAnyObjectByType<CharacterController>();
+        if (pc != null)
+            player = pc.transform;
     }
 
     void Update()
