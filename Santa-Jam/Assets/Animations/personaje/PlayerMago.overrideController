@@ -6,20 +6,20 @@ AnimatorOverrideController:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: PlayerEstrella
+  m_Name: PlayerMago
   m_Controller: {fileID: 9100000, guid: 7ce7fd04f55796a4a8c59144938ee72c, type: 2}
   m_Clips:
+  - m_OriginalClip: {fileID: 7400000, guid: b97570564b492914ebf6fa61b66b6e61, type: 2}
+    m_OverrideClip: {fileID: 7400000, guid: b97570564b492914ebf6fa61b66b6e61, type: 2}
   - m_OriginalClip: {fileID: 7400000, guid: 703b3d4cb0c465445830ccf62195cd97, type: 2}
-    m_OverrideClip: {fileID: 7400000, guid: 1e17ba9a40e176f45b617cbacf63a942, type: 2}
+    m_OverrideClip: {fileID: 7400000, guid: d43e56d6c3e1d9a4fbe1594fc41fffed, type: 2}
   - m_OriginalClip: {fileID: 7400000, guid: 50503255c9c1f4446b391b637655474d, type: 2}
     m_OverrideClip: {fileID: 7400000, guid: 50503255c9c1f4446b391b637655474d, type: 2}
   - m_OriginalClip: {fileID: 7400000, guid: 36a24cd10005aae4393d5c019350ee3d, type: 2}
-    m_OverrideClip: {fileID: 7400000, guid: 31005fb579c54844b9f78c55ea569eb6, type: 2}
+    m_OverrideClip: {fileID: 7400000, guid: f25d71a30c2956549b31e7ae73268848, type: 2}
   - m_OriginalClip: {fileID: 7400000, guid: 7b799d923b37168499da08f4341b1776, type: 2}
     m_OverrideClip: {fileID: 7400000, guid: 7b799d923b37168499da08f4341b1776, type: 2}
   - m_OriginalClip: {fileID: 7400000, guid: e8fafe41b10fa964fb1c21fd60266bb9, type: 2}
-    m_OverrideClip: {fileID: 7400000, guid: 76b68466acd2f57458208271d30e1f52, type: 2}
-  - m_OriginalClip: {fileID: 7400000, guid: b97570564b492914ebf6fa61b66b6e61, type: 2}
-    m_OverrideClip: {fileID: 7400000, guid: b97570564b492914ebf6fa61b66b6e61, type: 2}
+    m_OverrideClip: {fileID: 7400000, guid: 9fbda03a6c1834643b63a2b93b878746, type: 2}
   - m_OriginalClip: {fileID: 7400000, guid: 8467e93d0de04c744b083bfd296052e1, type: 2}
     m_OverrideClip: {fileID: 7400000, guid: 8467e93d0de04c744b083bfd296052e1, type: 2}
