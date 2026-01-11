@@ -5,6 +5,9 @@ public class WeaponPickup : PickupBase
     [Header("Data")]
     [SerializeField] private WeaponDa weaponToGive;
 
+    [Header("HUD Reemplazo (CambiaArmas)")]
+    [SerializeField] private CambiaArmasHUDController cambiaArmasHUD;
+
     protected override bool TryApply(GameObject other)
     {
         if (weaponToGive == null)
@@ -25,8 +28,26 @@ public class WeaponPickup : PickupBase
             return true;
         }
 
-        inv.AddOrReplace(weaponToGive);
-        Debug.Log($"Pickup: arma añadida al inventario -> {weaponToGive.ItemName}");
+        // Si hay hueco o ya la tienes: añade/equipa normal
+        if (inv.TryAddOrEquipWithoutReplacing(weaponToGive))
+        {
+            Debug.Log($"Pickup: arma añadida/equipada -> {weaponToGive.ItemName}");
+            return true;
+        }
+
+        // Si está lleno (3 armas): abre HUD de reemplazo
+        if (cambiaArmasHUD == null)
+            cambiaArmasHUD = FindFirstObjectByType<CambiaArmasHUDController>();
+
+        if (cambiaArmasHUD == null)
+        {
+            Debug.LogWarning("No encuentro CambiaArmasHUDController en escena. Fallback a AddOrReplace.");
+            inv.AddOrReplace(weaponToGive);
+            return true;
+        }
+
+        cambiaArmasHUD.Open(inv, weaponToGive);
+        Debug.Log($"Pickup: inventario lleno, abriendo CambiaArmas -> {weaponToGive.ItemName}");
         return true;
     }
 }

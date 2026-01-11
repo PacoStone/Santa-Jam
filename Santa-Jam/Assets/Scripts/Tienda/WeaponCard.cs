@@ -1,116 +1,78 @@
 using UnityEngine;
 using UnityEngine.EventSystems;
 
-[RequireComponent(typeof(RectTransform))]
-public class WeaponCard : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, IPointerMoveHandler
+public class WeaponCard : MonoBehaviour,
+    IPointerEnterHandler, IPointerExitHandler, IPointerMoveHandler, IPointerClickHandler
 {
-    [Header("Hover Select")]
-    private TiendaBotones _shop;
-    private int _index;
+    [Header("Rotation")]
+    [SerializeField] private float maxRotation = 8f;
+    [SerializeField] private float smooth = 12f;
 
-    [Header("Balatro-like Tilt")]
-    [Tooltip("Camera usada por el Canvas. Déjala vacía si tu Canvas es Screen Space - Overlay.")]
-    [SerializeField] private Camera uiCamera;
+    private RectTransform rect;
+    private Quaternion targetRot;
 
-    [Tooltip("Máxima rotación en grados (X e Y) cuando el ratón está en el borde de la carta.")]
-    [SerializeField] private float maxTilt = 12f;
-
-    [Tooltip("Rotación Z extra (estética) en función de la X del ratón. 0 para desactivar.")]
-    [SerializeField] private float maxRollZ = 4f;
-
-    [Tooltip("Cuánto se 'acerca' la rotación a su objetivo (más alto = más rápido).")]
-    [SerializeField] private float tiltResponsiveness = 14f;
-
-    [Tooltip("Velocidad de retorno al estado neutro al salir del hover.")]
-    [SerializeField] private float returnSpeed = 10f;
-
-    [Tooltip("Escala ligera al hacer hover (1.02 recomendado). 1 para desactivar.")]
-    [SerializeField] private float hoverScale = 1.02f;
-
-    [Tooltip("Suavizado de escala.")]
-    [SerializeField] private float scaleSpeed = 12f;
-
-    private RectTransform _rt;
-    private bool _hovering;
-    private Vector2 _localCursor;
-    private Quaternion _baseRotation;
-    private Vector3 _baseScale;
-
-    private Quaternion _currentRotation;
-
-    public void Initialize(TiendaBotones shop, int index)
-    {
-        _shop = shop;
-        _index = index;
-    }
+    // Shop binding
+    private TiendaBotones shop;
+    private int index = -1;
 
     private void Awake()
     {
-        _rt = GetComponent<RectTransform>();
-        _baseRotation = _rt.localRotation;
-        _baseScale = _rt.localScale;
-        _currentRotation = _baseRotation;
+        rect = GetComponent<RectTransform>();
+        targetRot = rect.localRotation;
     }
 
-    private void Update()
+    /// <summary>
+    /// Método para tienda: asigna a qué índice corresponde esta carta.
+    /// Al hover/click refresca el panel derecho.
+    /// </summary>
+    public void Initialize(TiendaBotones tienda, int idx)
     {
-        // Objetivo de rotación
-        Quaternion targetRot = _baseRotation;
-
-        if (_hovering)
-        {
-            // Normaliza el cursor dentro del rect: -1..1 (centro = 0)
-            Rect r = _rt.rect;
-            float nx = (r.width <= 0.0001f) ? 0f : Mathf.Clamp((_localCursor.x / (r.width * 0.5f)), -1f, 1f);
-            float ny = (r.height <= 0.0001f) ? 0f : Mathf.Clamp((_localCursor.y / (r.height * 0.5f)), -1f, 1f);
-
-            // Tilt estilo Balatro:
-            // - Mover ratón a la derecha inclina hacia Y (yaw)
-            // - Mover ratón arriba inclina hacia X (pitch) en sentido inverso para "mirar" al cursor
-            float tiltX = -ny * maxTilt;
-            float tiltY = nx * maxTilt;
-            float rollZ = -nx * maxRollZ;
-
-            targetRot = _baseRotation * Quaternion.Euler(tiltX, tiltY, rollZ);
-            _currentRotation = Quaternion.Slerp(_currentRotation, targetRot, 1f - Mathf.Exp(-tiltResponsiveness * Time.unscaledDeltaTime));
-        }
-        else
-        {
-            _currentRotation = Quaternion.Slerp(_currentRotation, _baseRotation, 1f - Mathf.Exp(-returnSpeed * Time.unscaledDeltaTime));
-        }
-
-        _rt.localRotation = _currentRotation;
-
-        // Escala ligera al hover (opcional)
-        Vector3 targetScale = _hovering ? _baseScale * hoverScale : _baseScale;
-        _rt.localScale = Vector3.Lerp(_rt.localScale, targetScale, 1f - Mathf.Exp(-scaleSpeed * Time.unscaledDeltaTime));
+        shop = tienda;
+        index = idx;
     }
 
     public void OnPointerEnter(PointerEventData eventData)
     {
-        _hovering = true;
-
-        // Tu comportamiento actual: actualizar panel derecho por índice
-        if (_shop != null)
-            _shop.OnCardHovered(_index);
-
-        UpdateLocalCursor(eventData);
+        // En tienda queremos que con hover también se actualice (opcional pero útil)
+        if (shop != null && index >= 0)
+            shop.OnCardHovered(index);
     }
 
-    public void OnPointerExit(PointerEventData eventData)
+    public void OnPointerClick(PointerEventData eventData)
     {
-        _hovering = false;
+        // Click: actualiza selección/panel (esto es lo que pedías)
+        if (shop != null && index >= 0)
+            shop.OnCardHovered(index);
     }
 
     public void OnPointerMove(PointerEventData eventData)
     {
-        if (!_hovering) return;
-        UpdateLocalCursor(eventData);
+        if (rect == null) return;
+
+        Vector2 localPoint;
+        RectTransformUtility.ScreenPointToLocalPointInRectangle(
+            rect, eventData.position, eventData.pressEventCamera, out localPoint);
+
+        // normalizado -1..1 aprox
+        Vector2 half = rect.rect.size * 0.5f;
+        float nx = (half.x <= 0.0001f) ? 0f : Mathf.Clamp(localPoint.x / half.x, -1f, 1f);
+        float ny = (half.y <= 0.0001f) ? 0f : Mathf.Clamp(localPoint.y / half.y, -1f, 1f);
+
+        float rotX = -ny * maxRotation;
+        float rotY = nx * maxRotation;
+
+        targetRot = Quaternion.Euler(rotX, rotY, 0f);
     }
 
-    private void UpdateLocalCursor(PointerEventData eventData)
+    public void OnPointerExit(PointerEventData eventData)
     {
-        // Convierte posición pantalla -> punto local dentro del RectTransform
-        RectTransformUtility.ScreenPointToLocalPointInRectangle(_rt, eventData.position, uiCamera, out _localCursor);
+        targetRot = Quaternion.identity;
+    }
+
+    private void Update()
+    {
+        if (rect == null) return;
+
+        rect.localRotation = Quaternion.Slerp(rect.localRotation, targetRot, Time.unscaledDeltaTime * smooth);
     }
 }

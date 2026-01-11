@@ -14,30 +14,33 @@ public class WeaponInventoryController : MonoBehaviour
     [Header("Refs")]
     [SerializeField] private WeaponRuntime weaponRuntime;
 
-    [Header("Slots (4)")]
-    [SerializeField] private SlotState[] slots = new SlotState[4];
+    [Header("Slots (3 equipadas)")]
+    [SerializeField] private SlotState[] slots = new SlotState[3];
 
-    [Header("Runtime")]
-    [SerializeField] private int currentIndex = -1; // -1 = sin arma
+    [Header("Start")]
+    [SerializeField] private int startIndex = 0;
 
-    // EXISTENTE (lo mantengo)
-    public event Action<int> OnWeaponChanged; // newIndex (puede ser -1)
+    public event Action<int> OnWeaponChanged;
+    public event Action<WeaponDa, int> OnWeaponDataChanged;
 
-    // NUEVO (para animator/visual, UI, etc.)
-    public event Action<WeaponDa, int> OnWeaponDataChanged; // weapon, index
+    private int currentIndex = 0;
 
     public int CurrentIndex => currentIndex;
-
-    public WeaponDa CurrentWeaponData
-    {
-        get
-        {
-            if (currentIndex < 0 || currentIndex >= slots.Length) return null;
-            return slots[currentIndex].weapon;
-        }
-    }
+    public WeaponDa CurrentWeaponData => (currentIndex >= 0 && currentIndex < 3) ? slots[currentIndex].weapon : null;
 
     private void Awake()
+    {
+        EnsureSlotsSize();
+        currentIndex = Mathf.Clamp(startIndex, 0, 2);
+    }
+
+    private void OnValidate()
+    {
+        EnsureSlotsSize();
+        startIndex = Mathf.Clamp(startIndex, 0, 2);
+    }
+
+    private void EnsureSlotsSize()
     {
         if (slots == null || slots.Length != 3)
             slots = new SlotState[3];
@@ -46,8 +49,6 @@ public class WeaponInventoryController : MonoBehaviour
     private void Start()
     {
         EquipCurrentSlot(initial: true);
-
-        // Emite también el evento nuevo al iniciar, por si ya empiezas armado
         OnWeaponDataChanged?.Invoke(CurrentWeaponData, currentIndex);
     }
 
@@ -59,9 +60,14 @@ public class WeaponInventoryController : MonoBehaviour
         return count;
     }
 
-    public WeaponDa GetWeaponInSlot(int slotIndex)
+    public bool HasAtLeastTwoWeapons()
     {
-        if (slotIndex < 0 || slotIndex > 2) return null;
+        return WeaponCount() >= 2;
+    }
+
+    public WeaponDa GetWeapon(int slotIndex)
+    {
+        if (slotIndex < 0 || slotIndex >= 3) return null;
         return slots[slotIndex].weapon;
     }
 
@@ -71,11 +77,18 @@ public class WeaponInventoryController : MonoBehaviour
         if (slotIndex != currentIndex) return 0f;
         return weaponRuntime.GetReloadProgress01();
     }
-    public bool AddOrReplace(WeaponDa weapon)
+
+    /// <summary>
+    /// Intenta:
+    /// 1) Equipar si ya existe
+    /// 2) Añadir si hay hueco
+    /// Si NO hay hueco (3 llenas) devuelve false (para abrir HUD de reemplazo).
+    /// </summary>
+    public bool TryAddOrEquipWithoutReplacing(WeaponDa weapon)
     {
         if (weapon == null) return false;
 
-        // 1) Si ya existe en un slot, simplemente equipa ese slot
+        // Ya existe: equipar
         for (int i = 0; i < 3; i++)
         {
             if (slots[i].weapon == weapon)
@@ -85,7 +98,7 @@ public class WeaponInventoryController : MonoBehaviour
             }
         }
 
-        // 2) Busca primer slot vacío
+        // Hueco libre
         int empty = -1;
         for (int i = 0; i < 3; i++)
         {
@@ -96,48 +109,107 @@ public class WeaponInventoryController : MonoBehaviour
             }
         }
 
-        // Defaults de munición desde WeaponDa (tu WeaponRuntime usa estos mismos campos en Equip)
+        if (empty == -1)
+            return false; // Lleno: que el HUD decida qué slot reemplazar
+
         int mag = Mathf.Max(0, weapon.BulletsPerMagazine);
         int reserve = Mathf.Max(0, weapon.MaxReserveAmmo);
 
-        // 3) Si hay hueco: añade en el hueco y equipa
-        if (empty != -1)
-        {
-            slots[empty] = new SlotState
-            {
-                weapon = weapon,
-                mag = mag,
-                reserve = reserve
-            };
-
-            SetIndex(empty);
-            return true;
-        }
-
-        // 4) Si no hay hueco: reemplaza el slot actual (o el 0 si no hay arma equipada)
-        int replaceIndex = (currentIndex >= 0 && currentIndex < 3) ? currentIndex : 0;
-
-        // Guarda estado del arma actual antes de sobreescribir
-        SaveCurrentSlotState();
-
-        slots[replaceIndex] = new SlotState
+        slots[empty] = new SlotState
         {
             weapon = weapon,
             mag = mag,
             reserve = reserve
         };
 
-        // Fuerza equipar aunque sea el mismo índice
-        currentIndex = replaceIndex;
-        EquipCurrentSlot(initial: false);
+        SetIndex(empty);
+        return true;
+    }
 
-        // Eventos (para HUD/Animator, etc.)
-        OnWeaponChanged?.Invoke(currentIndex);
-        OnWeaponDataChanged?.Invoke(CurrentWeaponData, currentIndex);
+    /// <summary>
+    /// Reemplaza un slot específico por el arma nueva, y opcionalmente la equipa.
+    /// </summary>
+    public bool ReplaceSlot(int slotIndex, WeaponDa newWeapon, bool equipAfter = true)
+    {
+        if (newWeapon == null) return false;
+        if (slotIndex < 0 || slotIndex >= 3) return false;
+
+        // Guarda estado del arma actual antes de sobreescribir
+        SaveCurrentSlotState();
+
+        int mag = Mathf.Max(0, newWeapon.BulletsPerMagazine);
+        int reserve = Mathf.Max(0, newWeapon.MaxReserveAmmo);
+
+        slots[slotIndex] = new SlotState
+        {
+            weapon = newWeapon,
+            mag = mag,
+            reserve = reserve
+        };
+
+        if (equipAfter)
+        {
+            currentIndex = slotIndex;
+            EquipCurrentSlot(initial: false);
+            OnWeaponChanged?.Invoke(currentIndex);
+            OnWeaponDataChanged?.Invoke(CurrentWeaponData, currentIndex);
+        }
+        else
+        {
+            OnWeaponDataChanged?.Invoke(CurrentWeaponData, currentIndex);
+        }
 
         return true;
     }
 
+    /// <summary>
+    /// Método antiguo. Lo dejo por compatibilidad, pero ahora:
+    /// - Si está lleno, reemplaza el slot actual.
+    /// Si prefieres obligar siempre al HUD, no lo uses.
+    /// </summary>
+    public bool AddOrReplace(WeaponDa weapon)
+    {
+        if (weapon == null) return false;
+
+        // 1) Si ya existe: equipa
+        for (int i = 0; i < 3; i++)
+        {
+            if (slots[i].weapon == weapon)
+            {
+                SetIndex(i);
+                return true;
+            }
+        }
+
+        // 2) Hueco
+        int empty = -1;
+        for (int i = 0; i < 3; i++)
+        {
+            if (slots[i].weapon == null) { empty = i; break; }
+        }
+
+        int mag = Mathf.Max(0, weapon.BulletsPerMagazine);
+        int reserve = Mathf.Max(0, weapon.MaxReserveAmmo);
+
+        if (empty != -1)
+        {
+            slots[empty] = new SlotState { weapon = weapon, mag = mag, reserve = reserve };
+            SetIndex(empty);
+            return true;
+        }
+
+        // 3) Lleno: reemplaza el actual
+        int replaceIndex = (currentIndex >= 0 && currentIndex < 3) ? currentIndex : 0;
+        SaveCurrentSlotState();
+
+        slots[replaceIndex] = new SlotState { weapon = weapon, mag = mag, reserve = reserve };
+        currentIndex = replaceIndex;
+        EquipCurrentSlot(initial: false);
+
+        OnWeaponChanged?.Invoke(currentIndex);
+        OnWeaponDataChanged?.Invoke(CurrentWeaponData, currentIndex);
+        return true;
+    }
 
     public void ChangeLeft()
     {
@@ -153,87 +225,50 @@ public class WeaponInventoryController : MonoBehaviour
 
     public void SetIndex(int newIndex)
     {
-        if (newIndex < -1 || newIndex > 2) return;
+        if (newIndex < 0 || newIndex >= 3) return;
         if (newIndex == currentIndex) return;
+        if (slots[newIndex].weapon == null) return;
 
         SaveCurrentSlotState();
-
         currentIndex = newIndex;
         EquipCurrentSlot(initial: false);
 
-        // EVENTOS
         OnWeaponChanged?.Invoke(currentIndex);
         OnWeaponDataChanged?.Invoke(CurrentWeaponData, currentIndex);
+    }
+
+    private int FindNextOccupiedSlot(int fromIndex, int dir)
+    {
+        if (dir == 0) return fromIndex;
+
+        int idx = fromIndex;
+        for (int step = 0; step < 3; step++)
+        {
+            idx = (idx + dir + 3) % 3;
+            if (slots[idx].weapon != null) return idx;
+        }
+        return fromIndex;
     }
 
     private void SaveCurrentSlotState()
     {
         if (weaponRuntime == null) return;
-        if (currentIndex < 0 || currentIndex > 2) return;
+        if (currentIndex < 0 || currentIndex >= 3) return;
         if (slots[currentIndex].weapon == null) return;
 
-        slots[currentIndex] = new SlotState
-        {
-            weapon = slots[currentIndex].weapon,
-            mag = weaponRuntime.currentMagazine,
-            reserve = weaponRuntime.currentReserveAmmo
-        };
+        slots[currentIndex].mag = weaponRuntime.CurrentMagazine;
+        slots[currentIndex].reserve = weaponRuntime.CurrentReserve;
     }
 
     private void EquipCurrentSlot(bool initial)
     {
         if (weaponRuntime == null) return;
+        if (currentIndex < 0 || currentIndex >= 3) return;
 
-        // Si no hay arma equipada
-        if (currentIndex == -1)
-        {
-            weaponRuntime.CancelReload();
-            weaponRuntime.weaponData = null;
-            weaponRuntime.currentMagazine = 0;
-            weaponRuntime.currentReserveAmmo = 0;
-            weaponRuntime.reloading = false;
-            return;
-        }
+        var s = slots[currentIndex];
+        if (s.weapon == null) return;
 
-        var slot = slots[currentIndex];
-
-        if (slot.weapon == null)
-        {
-            // Inconsistencia: índice apunta a vacío, corrige
-            currentIndex = FindFirstOccupiedSlot();
-            if (currentIndex == -1)
-            {
-                // No hay armas realmente
-                EquipCurrentSlot(initial);
-                return;
-            }
-            slot = slots[currentIndex];
-        }
-
-        weaponRuntime.Equip(slot.weapon);
-        weaponRuntime.SetAmmo(slot.mag, slot.reserve);
+        //weaponRuntime.Equip(s.weapon, s.mag, s.reserve, initial);
+        weaponRuntime.Equip(s.weapon);
     }
-
-    private int FindFirstOccupiedSlot()
-    {
-        for (int i = 0; i < 3; i++)
-            if (slots[i].weapon != null) return i;
-        return -1;
-    }
-
-    private int FindNextOccupiedSlot(int fromIndex, int dir)
-    {
-        int start = fromIndex;
-        if (start < 0 || start > 2) start = 0;
-
-        for (int step = 1; step <= 3; step++)
-        {
-            int i = Mod(start + step * dir, 3);
-            if (slots[i].weapon != null)
-                return i;
-        }
-        return fromIndex; // fallback
-    }
-
-    private int Mod(int a, int m) => (a % m + m) % m;
 }

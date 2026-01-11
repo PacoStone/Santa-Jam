@@ -128,7 +128,7 @@ public class CardsFanHUDController : MonoBehaviour
         // Activa/desactiva cartas por ocupación del slot
         for (int i = 0; i < slotCountUI; i++)
         {
-            bool occupied = inventory.GetWeaponInSlot(i) != null; // si tu inventario aún es de 3 slots, esto necesitará ampliarse
+            bool occupied = inventory.GetWeapon(i) != null; // si tu inventario aún es de 3 slots, esto necesitará ampliarse
             if (cards[i] != null) cards[i].gameObject.SetActive(occupied);
         }
 
@@ -305,7 +305,7 @@ public class CardsFanHUDController : MonoBehaviour
             var icon = icons[i];
             if (icon == null) continue;
 
-            var w = inventory.GetWeaponInSlot(i);
+            var w = inventory.GetWeapon(i);
             if (w != null && w.Icon != null)
             {
                 icon.sprite = w.Icon;
@@ -359,7 +359,7 @@ public class CardsFanHUDController : MonoBehaviour
         int found = -1;
         for (int i = 0; i < slotCountUI; i++)
         {
-            if (inventory.GetWeaponInSlot(i) != null)
+            if (inventory.GetWeapon(i) != null)
             {
                 if (found != -1) return -1;
                 found = i;
@@ -371,7 +371,7 @@ public class CardsFanHUDController : MonoBehaviour
     private int FindFirstOccupiedSlot(int slotCountUI)
     {
         for (int i = 0; i < slotCountUI; i++)
-            if (inventory.GetWeaponInSlot(i) != null) return i;
+            if (inventory.GetWeapon(i) != null) return i;
         return -1;
     }
 
@@ -382,7 +382,7 @@ public class CardsFanHUDController : MonoBehaviour
         for (int step = 1; step <= cards.Length; step++)
         {
             int i = Mod(from - step, cards.Length);
-            if (inventory.GetWeaponInSlot(i) != null) return i;
+            if (inventory.GetWeapon(i) != null) return i;
         }
         return from;
     }
@@ -394,7 +394,7 @@ public class CardsFanHUDController : MonoBehaviour
         for (int step = 1; step <= cards.Length; step++)
         {
             int i = Mod(from + step, cards.Length);
-            if (inventory.GetWeaponInSlot(i) != null) return i;
+            if (inventory.GetWeapon(i) != null) return i;
         }
         return from;
     }

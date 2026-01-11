@@ -24,6 +24,10 @@ public class WeaponRuntime : MonoBehaviour
     private float reloadStartTime;
     private float reloadDuration;
 
+    public int CurrentMagazine => currentMagazine;
+    public int CurrentReserve => currentReserve;
+
+
     // Retrocompatibilidad (GameManager / SaveData)
     public int currentReserve
     {

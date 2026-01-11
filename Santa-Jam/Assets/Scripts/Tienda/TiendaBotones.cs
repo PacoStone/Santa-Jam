@@ -22,14 +22,18 @@ public class TiendaBotones : MonoBehaviour
     [SerializeField] private List<WeaponCardEntry> weaponCards = new List<WeaponCardEntry>(4);
 
     [Header("Right Panel (Selection)")]
-    [SerializeField] private Image selectedCardImage;          // Image -> Carta
-    [SerializeField] private TMP_Text selectedTitleText;       // Título -> Item Name
-    [SerializeField] private TMP_Text selectedAttackText;      // Ataque:** -> Fire rate
-    [SerializeField] private TMP_Text selectedEffectText;      // Efecto: -> Descripción
-    [SerializeField] private TMP_Text selectedPriceText;       // Precio
+    [SerializeField] private Image selectedCardImage;
+    [SerializeField] private TMP_Text selectedTitleText;
+    [SerializeField] private TMP_Text selectedAttackText;
+    [SerializeField] private TMP_Text selectedEffectText;
+    [SerializeField] private TMP_Text selectedPriceText;
 
     [Header("Buy")]
     [SerializeField] private Button buyButton;
+
+    [Header("Replace HUD (CambiaArmas)")]
+    [Tooltip("Arrastra aquí el objeto CambiaArmas (con CambiaArmasHUDController).")]
+    [SerializeField] private CambiaArmasHUDController cambiaArmasHUD;
 
     private readonly List<Vector3> _pulseBaseScales = new();
     private int _currentIndex = -1;
@@ -44,25 +48,27 @@ public class TiendaBotones : MonoBehaviour
         if (buyButton != null)
             buyButton.onClick.AddListener(HandleBuyClicked);
 
-        // Auto-registro de los "hover" en las imágenes de carta
-        // (si olvidas asignar índice manual, también lo asigna).
+        // Registro de WeaponCard + asignación de índice (IMPORTANTE)
         for (int i = 0; i < weaponCards.Count; i++)
         {
             var entry = weaponCards[i];
-            if (entry == null) continue;
+            if (entry == null || entry.cardImage == null) continue;
 
-            if (entry.cardImage != null)
-            {
-                var hover = entry.cardImage.GetComponent<WeaponCard>();
-                if (hover == null) hover = entry.cardImage.gameObject.AddComponent<WeaponCard>();
+            var card = entry.cardImage.GetComponent<WeaponCard>();
+            if (card == null)
+                card = entry.cardImage.gameObject.AddComponent<WeaponCard>();
 
-                hover.Initialize(this, i);
-            }
+            // Esto permite que al hover/click la carta llame a OnCardHovered(i)
+            card.Initialize(this, i);
         }
     }
 
     private void Start()
     {
+        // FIX: en Tienda el cursor debe ser visible y libre
+        Cursor.visible = true;
+        Cursor.lockState = CursorLockMode.None;
+
         // Selección inicial: primera carta válida
         for (int i = 0; i < weaponCards.Count; i++)
         {
@@ -105,7 +111,7 @@ public class TiendaBotones : MonoBehaviour
     {
         if (string.IsNullOrWhiteSpace(exitSceneName))
         {
-            Debug.LogWarning("[ShopUIController] exitSceneName está vacío. No se puede cambiar de escena.");
+            Debug.LogWarning("[TiendaBotones] exitSceneName está vacío.");
             return;
         }
 
@@ -114,12 +120,52 @@ public class TiendaBotones : MonoBehaviour
 
     private void HandleBuyClicked()
     {
-        Debug.Log("lo he comprado");
+        if (_currentIndex < 0 || _currentIndex >= weaponCards.Count)
+        {
+            Debug.LogWarning("[TiendaBotones] No hay carta seleccionada.");
+            return;
+        }
+
+        WeaponCardEntry entry = weaponCards[_currentIndex];
+        if (entry == null || entry.weaponData == null)
+        {
+            Debug.LogWarning("[TiendaBotones] WeaponData inválido.");
+            return;
+        }
+
+        if (GameManager.Instance == null)
+        {
+            Debug.LogError("[TiendaBotones] No existe GameManager activo.");
+            return;
+        }
+
+        if (cambiaArmasHUD == null)
+        {
+#if UNITY_2023_1_OR_NEWER
+            cambiaArmasHUD = FindFirstObjectByType<CambiaArmasHUDController>();
+#else
+            cambiaArmasHUD = FindObjectOfType<CambiaArmasHUDController>();
+#endif
+        }
+
+        if (cambiaArmasHUD == null)
+        {
+            Debug.LogError("[TiendaBotones] No se encontró CambiaArmasHUDController en la escena.");
+            return;
+        }
+
+        WeaponDa[] currentLoadout = GameManager.Instance.GetCurrentLoadoutWeaponDas();
+
+        cambiaArmasHUD.OpenForShop(currentLoadout, entry.weaponData, (slotIndex) =>
+        {
+            GameManager.Instance.ReplacePersistentWeaponSlot(
+                slotIndex,
+                entry.weaponData,
+                makeEquipped: true
+            );
+        });
     }
 
-    /// <summary>
-    /// Llamado por WeaponCardHover cuando el ratón entra en una carta.
-    /// </summary>
     public void OnCardHovered(int index)
     {
         SelectWeapon(index);
@@ -131,7 +177,6 @@ public class TiendaBotones : MonoBehaviour
 
         WeaponCardEntry entry = weaponCards[index];
         if (entry == null || entry.weaponData == null) return;
-
         if (_currentIndex == index) return;
 
         _currentIndex = index;
@@ -141,19 +186,14 @@ public class TiendaBotones : MonoBehaviour
     private void ApplySelectionToRightPanel(WeaponCardEntry entry)
     {
         if (selectedCardImage != null)
-        {
-            if (entry.cardImage != null && entry.cardImage.sprite != null)
-                selectedCardImage.sprite = entry.cardImage.sprite;
-            else
-                selectedCardImage.sprite = null;
-        }
+            selectedCardImage.sprite = entry.cardImage != null ? entry.cardImage.sprite : null;
 
         if (selectedTitleText != null)
             selectedTitleText.text = !string.IsNullOrWhiteSpace(entry.itemNameOverride)
                 ? entry.itemNameOverride
                 : entry.weaponData.name;
 
-        // Ataque:** -> Fire rate (según lo pedido)
+        // Ataque:** -> Fire rate
         if (selectedAttackText != null)
             selectedAttackText.text = $"ATAQUE: {entry.weaponData.FireRate:0.##}";
 
