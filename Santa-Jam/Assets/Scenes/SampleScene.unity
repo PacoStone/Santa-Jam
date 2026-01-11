@@ -1344,6 +1344,11 @@ Transform:
   - {fileID: 1917652291}
   m_Father: {fileID: 817830013}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!95 &1079730982 stripped
+Animator:
+  m_CorrespondingSourceObject: {fileID: 6801490874271915323, guid: a2cb04db29b61c54e8544264f2aef16a, type: 3}
+  m_PrefabInstance: {fileID: 7845450446392055552}
+  m_PrefabAsset: {fileID: 0}
 --- !u!4 &1177468191 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 5411976109400352044, guid: a2cb04db29b61c54e8544264f2aef16a, type: 3}
@@ -3669,6 +3674,10 @@ PrefabInstance:
       propertyPath: brain
       value: 
       objectReference: {fileID: 281740910}
+    - target: {fileID: 4709438192611645583, guid: a2cb04db29b61c54e8544264f2aef16a, type: 3}
+      propertyPath: animator
+      value: 
+      objectReference: {fileID: 1079730982}
     - target: {fileID: 5411976109400352044, guid: a2cb04db29b61c54e8544264f2aef16a, type: 3}
       propertyPath: m_LocalPosition.x
       value: 5.67

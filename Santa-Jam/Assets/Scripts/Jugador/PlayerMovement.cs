@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 [RequireComponent(typeof(CharacterController))]
@@ -29,7 +30,7 @@ public class PlayerMovementController : MonoBehaviour
     [SerializeField, Range(0.15f, 0.75f)]
     private float minIntoWallDot = 0.35f; // "tengo intención de ir hacia la pared"
     [SerializeField, Range(0f, 1f)]
-    private float lateralControl = 0.65f; // 0 = solo perpendicular, 1 = mucho lateral 
+    private float lateralControl = 0.65f; // 0 = solo perpendicular, 1 = mucho lateral
 
     [Header("Ledge Grab")]
     [SerializeField] private float ledgeCheckDistance = 0.6f;
@@ -40,6 +41,10 @@ public class PlayerMovementController : MonoBehaviour
     [SerializeField] private float ledgeShimmySpeed = 2.2f;
     [SerializeField] private float ledgeShimmyProbeDistance = 0.6f;
     [SerializeField] private float ledgeHangBackOffset = 0.3f; // separa el player de la pared
+
+    // ====== Events para animación/UI ======
+    public event Action OnJumped;
+    public event Action OnLanded;
 
     private CharacterController controller;
     private InputManager input;
@@ -55,17 +60,18 @@ public class PlayerMovementController : MonoBehaviour
     private Vector3 ledgeWallNormal;
     private Vector3 ledgeShimmyDir;
 
-    public bool IsGrounded => controller != null && controller.isGrounded;
+    private bool wasGrounded;
+
     public bool SprintHeld => input != null && input.sprintHeld;
-    public bool JumpPressed => input != null && input.jumpPressed;
+    public bool IsGrounded => controller.isGrounded;
+    public bool IsJumping => !controller.isGrounded;
+
 
     public bool IsMoving
     {
         get
         {
-            if (input == null)
-                return false;
-
+            if (input == null) return false;
             return input.move.sqrMagnitude > moveThreshold;
         }
     }
@@ -74,14 +80,18 @@ public class PlayerMovementController : MonoBehaviour
     {
         controller = GetComponent<CharacterController>();
         input = GetComponent<InputManager>();
+        wasGrounded = controller != null && controller.isGrounded;
     }
 
     private void Update()
     {
-        GroundCheck();
+        GroundCheck();     // también actualiza coyote
+        HandleLandEvent(); // detecta aterrizaje por transición
+
         HandleTimers();
         WallCheck();
-        Jump();
+
+        Jump();  // salto normal (coyote+buffer)
         Move();
         Gravity();
     }
@@ -109,7 +119,7 @@ public class PlayerMovementController : MonoBehaviour
 
     private void Move()
     {
-        if (input == null || isWallJumping)
+        if (input == null || isWallJumping || isLedgeGrabbing)
             return;
 
         Vector3 forward = transform.forward;
@@ -123,7 +133,6 @@ public class PlayerMovementController : MonoBehaviour
         }
 
         float speed = moveSpeed;
-
         if (input.sprintHeld)
         {
             speed *= sprintMultiplier;
@@ -134,9 +143,10 @@ public class PlayerMovementController : MonoBehaviour
 
     private void Jump()
     {
-        if (input == null)
+        if (input == null || isLedgeGrabbing)
             return;
 
+        // Buffer
         if (input.jumpPressed)
         {
             jumpBufferTimer = jumpBufferTime;
@@ -146,18 +156,26 @@ public class PlayerMovementController : MonoBehaviour
             jumpBufferTimer -= Time.deltaTime;
         }
 
-        coyoteTimer -= Time.deltaTime;
-
+        // Coyote ya lo actualiza GroundCheck(), aquí solo lo consumimos
         if (jumpBufferTimer > 0f && coyoteTimer > 0f)
         {
-            verticalVelocity = Mathf.Sqrt(jumpHeight * -2f * gravity);
+            DoGroundJump();
             jumpBufferTimer = 0f;
             coyoteTimer = 0f;
         }
     }
 
+    private void DoGroundJump()
+    {
+        verticalVelocity = Mathf.Sqrt(jumpHeight * -2f * gravity);
+        OnJumped?.Invoke();
+    }
+
     private void WallCheck()
     {
+        if (input == null)
+            return;
+
         if (IsGrounded || isWallJumping || isLedgeGrabbing)
             return;
 
@@ -168,7 +186,6 @@ public class PlayerMovementController : MonoBehaviour
         // Dirección de movimiento (mismo criterio que Move())
         Vector3 forward = transform.forward;
         Vector3 right = transform.right;
-
         Vector3 moveDir = (forward * input.move.y) + (right * input.move.x);
 
         if (moveDir.sqrMagnitude > 1f)
@@ -178,20 +195,17 @@ public class PlayerMovementController : MonoBehaviour
 
         float intoWall = (moveDir.sqrMagnitude > 0.0001f) ? Vector3.Dot(moveDir, -hit.normal) : 0f;
 
+        // Wall jump si hay buffer y estás “yendo hacia la pared”
         if (jumpBufferTimer > 0f && intoWall > minIntoWallDot)
         {
             Vector3 awayFromWall = hit.normal.normalized;
 
-            // Tangente de la pared según input (permite salida lateral/diagonal)
             Vector3 tangent = Vector3.ProjectOnPlane(moveDir, awayFromWall);
             if (tangent.sqrMagnitude > 0.0001f)
             {
                 tangent.Normalize();
             }
 
-            // Mezcla: siempre despega (away) + control lateral (tangent)
-            // lateralControl = 0 -> solo perpendicular
-            // lateralControl = 1 -> mucha componente lateral (si hay input)
             Vector3 horizontalDir = awayFromWall;
 
             if (tangent.sqrMagnitude > 0.0001f)
@@ -199,21 +213,20 @@ public class PlayerMovementController : MonoBehaviour
                 horizontalDir = Vector3.Lerp(awayFromWall, (awayFromWall + tangent).normalized, lateralControl).normalized;
             }
 
-            // Impulso final usando tus variables del inspector
             Vector3 impulse = (horizontalDir * wallAwayForce * wallJumpDirection.x) + (Vector3.up * wallJumpForce * wallJumpDirection.y);
 
             verticalVelocity = 0f;
             controller.Move(impulse * Time.deltaTime);
 
-            // Para que Gravity() siga con un arco consistente
             verticalVelocity = wallJumpForce * wallJumpDirection.y;
 
             isWallJumping = true;
             wallJumpTimer = wallJumpLockTime;
 
-            // Consumimos buffer
             jumpBufferTimer = 0f;
             coyoteTimer = 0f;
+
+            OnJumped?.Invoke();
         }
 
         // Ledge grab check
@@ -298,6 +311,9 @@ public class PlayerMovementController : MonoBehaviour
             controller.enabled = true;
 
             isLedgeGrabbing = false;
+
+            // Considera esto como “acción de salto” a nivel de animación
+            OnJumped?.Invoke();
         }
     }
 
@@ -319,5 +335,23 @@ public class PlayerMovementController : MonoBehaviour
 
             coyoteTimer = coyoteTime;
         }
+        else
+        {
+            // Si estás en el aire, el coyote baja (pero solo aquí; no lo “machacamos” en Jump())
+            coyoteTimer -= Time.deltaTime;
+        }
+    }
+
+    private void HandleLandEvent()
+    {
+        bool groundedNow = controller != null && controller.isGrounded;
+
+        // “Landed” = venías en aire y ahora tocas suelo
+        if (!wasGrounded && groundedNow && !isLedgeGrabbing)
+        {
+            OnLanded?.Invoke();
+        }
+
+        wasGrounded = groundedNow;
     }
 }
