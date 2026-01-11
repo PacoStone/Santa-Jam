@@ -7,17 +7,22 @@ public class EnemyHealthController : MonoBehaviour
     [SerializeField] private int currentHealth;
     private bool isDead = false;
 
+    private EnemyExplosive explosiveEnemy;
+
     void Start()
     {
         currentHealth = maxHealth;
+        explosiveEnemy = GetComponent<EnemyExplosive>();
     }
 
-  
     public void TakeDamage(int amount)
     {
         if (isDead) return;
 
         currentHealth -= amount;
+
+        if (explosiveEnemy != null)
+            explosiveEnemy.OnDamaged();
 
         if (currentHealth <= 0)
         {
@@ -25,18 +30,18 @@ public class EnemyHealthController : MonoBehaviour
         }
     }
 
-    // Muerte del enemigo
     void Die()
     {
         if (isDead) return;
         isDead = true;
 
-        //Animaciones, ETC, TODO
+        if (explosiveEnemy != null)
+            explosiveEnemy.OnDeath();
 
-        Destroy(gameObject);
+        if (explosiveEnemy == null)
+            Destroy(gameObject);
     }
 
-    
     public int GetCurrentHealth()
     {
         return currentHealth;

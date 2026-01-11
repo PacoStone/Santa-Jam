@@ -15,6 +15,7 @@ GameObject:
   - component: {fileID: 6171036765065287760}
   - component: {fileID: 4735109460964066226}
   - component: {fileID: 3708162380242748884}
+  - component: {fileID: 1884997557658313302}
   m_Layer: 0
   m_Name: simple Enemy
   m_TagString: Enemy
@@ -166,3 +167,21 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemyHealthController
   maxHealth: 100
+  currentHealth: 0
+--- !u!114 &1884997557658313302
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2490312864265963313}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: deb7a5301dbc2514a8df49a581d19f4c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::LootDropper
+  lootPrefab: {fileID: 4979577765537526499, guid: 6dc1cf136058d7a44be78d21e1dfe345, type: 3}
+  minLoot: 10
+  maxLoot: 25
+  spawnForce: 6
+  upwardForce: 2

@@ -5387,6 +5387,58 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d8f5d5d618008b54283b7a6541921926, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::UIManager
+  inputManager: {fileID: 0}
+  playerInput: {fileID: 0}
+  pauseMenuRoot: {fileID: 0}
+  basicButtonsRoot: {fileID: 0}
+  optionsRoot: {fileID: 0}
+  gameplayMapName: Player
+  uiMapName: UI
+  unlockCursorOnPause: 1
+  pauseVolume: {fileID: 0}
+  pausedWeight: 1
+  blendSeconds: 0.12
+  fullscreenToggle: {fileID: 0}
+  brightnessSlider: {fileID: 0}
+  volumeSlider: {fileID: 0}
+  brightnessVolume: {fileID: 0}
+  minPostExposure: -2
+  maxPostExposure: 2
+  audioMixer: {fileID: 0}
+  mixerExposedVolumeParam: MasterVolume
+  minVolumeDb: -80
+  maxVolumeDb: 0
+  optionsPanel: {fileID: 0}
+  otherRootsToShift: []
+  optionsSlideX: 650
+  othersSlideX: -650
+  slideSeconds: 0.25
+  slideEase:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 1
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  keepBothGroupsActiveDuringSlide: 1
+  slideUsingLocalPosition: 0
 --- !u!1 &226975354
 GameObject:
   m_ObjectHideFlags: 0
@@ -12728,6 +12780,10 @@ PrefabInstance:
       propertyPath: player
       value: 
       objectReference: {fileID: 1177468191}
+    - target: {fileID: 4401003431724770564, guid: d69ccb227474adc44850bbccf5930381, type: 3}
+      propertyPath: explosionEffect
+      value: 
+      objectReference: {fileID: 3131586522308371739, guid: 56addbc78750fc547a459e3dff0e0396, type: 3}
     - target: {fileID: 6094752203218433429, guid: d69ccb227474adc44850bbccf5930381, type: 3}
       propertyPath: m_LocalScale.x
       value: 2.219589
